@@ -1,3 +1,3 @@
-# Trixie  
-Pasos finales
+# Trixie
+Pasos finales  
 apt reinstall systemd

@@ -6,6 +6,5 @@ Assertion 'path\_is\_absolute(p)' failed at src/basic/chase.c:648, function chas
 
 Pasos
 exit # Salir de Chroot
-umount /dev/sda1 # Si sale busy está bien
 mount -o subvol=@ /dev/sda1 /mnt
 manjaro-chroot /mnt /bin/bash

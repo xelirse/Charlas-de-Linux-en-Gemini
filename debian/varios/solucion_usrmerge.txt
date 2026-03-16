@@ -1,0 +1,2 @@
+# Forzamos el estado de 'usrmerge' a instalado manualmente
+sed -i '/Package: usrmerge/,/Status:/ s/Status: .*/Status: install ok installed/' /var/lib/dpkg/status

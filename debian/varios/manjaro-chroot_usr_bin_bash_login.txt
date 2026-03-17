@@ -1,1 +1,1 @@
-manjaro-chroot . /usr/bin/bash --login
+manjaro-chroot . bash --login

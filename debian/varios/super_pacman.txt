@@ -1,1 +1,3 @@
 pacman -Sy --overwrite="*" python-pynvim xclip xsel wl-clipboard  bind bluez-tools dmidecode doas freeipmi hddtemp ipmitool lvm2 mesa-utils net-tools perl-cpanel-json-xs perl-json-xs perl-io-socket-ssl smartmontools tree usbutils vulkan-tools wget wmctrl bat devtools python-pysocks python-defusedxml pacman-contrib perl-lwp-protocol-https highlight perl-json-xs doas
+
+pacman -Sy --overwrite="*" mailcap geoip2-database s-nail parallel-docs mercurial python-brotli python-brotlicffi python-h2 python-fastimport python-gpgme python-idna python-paramiko python-pyopenssl python-pyinotify python-rich python-fastimport python-gpgme python-paramiko bash-completion btrfs-progs nvchecker

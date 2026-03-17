@@ -1,0 +1,1 @@
+pacman -Sy python-pynvim xclip xsel wl-clipboard  bind bluez-tools dmidecode doas freeipmi hddtemp ipmitool lvm2 mesa-utils net-tools perl-cpanel-json-xs perl-json-xs perl-io-socket-ssl smartmontools tree usbutils vulkan-tools wget wmctrl bat devtools python-pysocks python-defusedxml pacman-contrib perl-lwp-protocol-https highlight perl-json-xs doas

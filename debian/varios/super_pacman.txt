@@ -4,5 +4,4 @@ pacman -Sy --overwrite="*" mailcap geoip2-database s-nail parallel-docs mercuria
 
 pacman -Sy --overwrite="*" python-pyasn1 python-mdit_py_plugins python-linkify-it-py python-twisted python-better-exceptions python-twisted python-awesomeversion python-lxml python-jq python-toml python-aiohttp python-httpx python-gobject
 
-
 pacman -Sy --overwrite="*" automat-visualize python-appdirs python-priority python-pyserial python-service-identity gunicorn python-aiodns python-socksio python-anyio python-trio python-sniffio python-trio python-outcome python-uvloop python-pytest python-zstandard python-socksio python-click python-rich python-pygments python-trio python-cairo

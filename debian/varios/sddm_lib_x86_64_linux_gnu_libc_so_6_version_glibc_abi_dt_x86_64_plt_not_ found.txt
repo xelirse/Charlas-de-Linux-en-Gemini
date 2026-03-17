@@ -5,4 +5,4 @@ Problema
 sddm: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_ABI_DT_X86_64_PLT' not found (required by /usr/lib/libm.so.6)
 
 Solución desde el pendrive
-apt install sddm
+apt reinstall sddm

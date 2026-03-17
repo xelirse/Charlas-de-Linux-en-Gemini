@@ -1,0 +1,7 @@
+xhost +local:
+manjaro-chroot /mnt bash
+sudo cp ~/.Xauthority /mnt/root/
+
+# Una vez adentro, exporta la variable
+export DISPLAY=:0
+export QT_X11_NO_MITSHM=1

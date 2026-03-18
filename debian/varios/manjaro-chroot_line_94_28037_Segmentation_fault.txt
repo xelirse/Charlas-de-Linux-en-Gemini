@@ -1,0 +1,6 @@
+Comando
+manjaro-chroot . bash
+Problema
+line 94: 28037 Segmentation fault
+Solución
+echo "" > /etc/ld.so.cache # Crear un archivo vacío

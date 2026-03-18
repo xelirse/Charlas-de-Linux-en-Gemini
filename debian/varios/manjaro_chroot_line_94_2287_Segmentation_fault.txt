@@ -6,13 +6,17 @@ Problema
 /usr/bin/manjaro-chroot: line 94:  2287 Segmentation fault      (core dumped) SHELL=/bin/sh unshare --fork --pid chroot "${chrootdir}" ${run_args[*]}
 
 Solución
+apt reinstall libc-bin
+busybox mv /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.a
+pacman-static -R lib32-expat lib32-mesa lib32-wayland lib32-libglvnd lib32-libglvnd
+pacman-static -Syu libelf ncurses glibc systemd
 
 Intento 0
-    sudo mount -t proc /proc proc/
-    sudo mount -t sysfs /sys sys/
-    sudo mount --rbind /dev dev/
-    sudo mount --rbind /run run/
-    sudo chroot .
+    mount -t proc /proc proc/
+    mount -t sysfs /sys sys/
+    mount --rbind /dev dev/
+    mount --rbind /run run/
+    chroot .
 
 Intento 1
 [manjaro @]# dmesg | tail -n 20
@@ -37,42 +41,20 @@ Intento 1
 [  732.886166] bash[3191]: segfault at 7fad74937620 ip 00007fad74937620 sp 00007ffda4ae8548 error 15 likely on CPU 0 (core 0, socket 0)
 [  732.886182] Code: 00 00 70 76 93 74 ad 7f 00 00 c0 76 93 74 ad 7f 00 00 10 77 93 74 ad 7f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 <70> 76 93 74 ad 7f 00 00 19 9e 96 74 ad 7f 00 00 00 00 00 00 00 00
 
-Intento 2
-    # Definir la ruta para no escribirla siempre (ajusta si cambia)
-    export TARGET="/run/media/manjaro/cfb49c22-87f2-47d9-a25b-310d8d8578af/@"
-
-    # Montar sistemas de archivos necesarios
-    sudo mount -t proc /proc "$TARGET/proc"
-    sudo mount --rbinding /sys "$TARGET/sys"
-    sudo mount --make-rslave "$TARGET/sys"
-    sudo mount --rbinding /dev "$TARGET/dev"
-    sudo mount --make-rslave "$TARGET/dev"
-    sudo mount --rbinding /run "$TARGET/run"
-    sudo mount --make-rslave "$TARGET/run"
-
-    # Copiar la configuración de red (evita errores de resolución de nombres)
-    sudo cp /etc/resolv.conf "$TARGET/etc/resolv.conf"
-
-    # Intentar entrar
-    sudo chroot "$TARGET" /bin/bash
-
-Intento 3
-    sudo chroot "$TARGET" /bin/sh
-
 Intento 4
     # Dentro del chroot:
     ldconfig
     locale-gen
 
 Intento 5
-    sudo LD_LIBRARY_PATH=/lib:/usr/lib chroot "$TARGET" /bin/bash
+    LD_LIBRARY_PATH=/lib:/usr/lib chroot "" /bin/bash
 
 Intento 6
     # Cambia la ruta por la tuya
     export TARGET="/run/media/manjaro/cfb49c22-87f2-47d9-a25b-310d8d8578af/@"
 
     # Ver qué versión tiene instalada (en Debian/Ubuntu)
-    grep -A 1 "Package: libc6" "$TARGET/var/lib/dpkg/status"
+    grep -A 1 "Package: libc6" "/var/lib/dpkg/status"
 
 Intento 7
     wget http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/libc6_2.35-0ubuntu3_amd64.deb
@@ -88,21 +70,21 @@ Intento 8
 
 Intento 9
     # Primero, haz un backup de lo que hay ahora por si acaso
-    sudo cp -v "$TARGET/lib/x86_64-linux-gnu/libc.so.6" "$TARGET/lib/x86_64-linux-gnu/libc.so.6.bak"
+    cp -v "/lib/x86_64-linux-gnu/libc.so.6" "/lib/x86_64-linux-gnu/libc.so.6.bak"
 
     # Copiar los archivos extraídos al sistema de destino
     # (Ajusta la ruta de origen según lo que extrajo el tar, suele ser usr/lib/...)
-    sudo cp -av usr/lib/x86_64-linux-gnu/* "$TARGET/lib/x86_64-linux-gnu/"
+    cp -av usr/lib/x86_64-linux-gnu/* "/lib/x86_64-linux-gnu/"
 
 Intento 10
-    cd "$TARGET/lib/x86_64-linux-gnu/"
+    cd "/lib/x86_64-linux-gnu/"
     # Ver a dónde apunta el enlace actual
     ls -l libc.so.6
     # Si el archivo real se llama, por ejemplo, libc-2.35.so y el enlace no apunta a él:
-    # sudo ln -sf libc-2.35.so libc.so.6
+    # ln -sf libc-2.35.so libc.so.6
 
 Intento 11
-    sudo ldconfig -r "$TARGET"
+    ldconfig -r ""
 
 Intento 12
     # Entrar a la carpeta temporal (asegúrate de que esté vacía)
@@ -120,10 +102,10 @@ tar -xvf data.tar.*
 
 Intento 13
     # Copiar las librerías al destino
-    sudo cp -av usr/lib/x86_64-linux-gnu/* "$TARGET/usr/lib/x86_64-linux-gnu/"
+    cp -av usr/lib/x86_64-linux-gnu/* "/usr/lib/x86_64-linux-gnu/"
 
     # Actualizar los enlaces simbólicos en el destino
-    sudo ldconfig -r "$TARGET"
+    ldconfig -r ""
 
 Intento 14
     export TARGET="/run/media/manjaro/cfb49c22-87f2-47d9-a25b-310d8d8578af/@"
@@ -134,18 +116,18 @@ Intento 15
 
 Intento 16
     # Asegurarnos de que la carpeta de destino existe en el disco dañado
-    sudo mkdir -p "$TARGET/lib/x86_64-linux-gnu/"
-    sudo mkdir -p "$TARGET/usr/lib/x86_64-linux-gnu/"
+    mkdir -p "/lib/x86_64-linux-gnu/"
+    mkdir -p "/usr/lib/x86_64-linux-gnu/"
 
     # Copiar desde la carpeta donde se extrajo (ajusta la ruta si el 'find' dio otra)
-    sudo cp -av usr/lib/x86_64-linux-gnu/* "$TARGET/lib/x86_64-linux-gnu/"
-    sudo cp -av usr/lib/x86_64-linux-gnu/* "$TARGET/usr/lib/x86_64-linux-gnu/"
+    cp -av usr/lib/x86_64-linux-gnu/* "/lib/x86_64-linux-gnu/"
+    cp -av usr/lib/x86_64-linux-gnu/* "/usr/lib/x86_64-linux-gnu/"
 
 Intento 17
-    sudo ldconfig -r "$TARGET"
+    ldconfig -r ""
 
 Intento 18
-    sudo ldconfig -r "$TARGET"
+    ldconfig -r ""
 
 Intento 19
-    sudo /usr/bin/setarch $(uname -m) -R chroot "$TARGET" /bin/bash
+    /usr/bin/setarch $(uname -m) -R chroot "" /bin/bash

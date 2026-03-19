@@ -1,0 +1,5 @@
+Solución 1
+mv /usr/share/libalpm/hooks/00-timeshift-autosnap.hook /tmp/
+
+Solución 2
+pacman -Syu --overwrite="*" timeshift-autosnap

@@ -30,6 +30,8 @@ pacman -Syu --overwrite="*" psutils perl-file-homedir gcc mcpp libheif libid3tag
 
 pacman -Syu --overwrite="*" arj cpio lha lrzip lzip p7zip unarj unrar unzip
 
+pacman -Syu --overwrite="*" libraw libultrahdr libwmf libzip openexr djvulibre
+
 # Opción 1
 pacman -Syu --overwrite="*" harfbuzz imlib2 libde265 libdecor libei libfm libfm-extra libfm-gtk3 libfontenc libkeybinder3 libnotify libpipeline libwnck3 libxcvt libxfont2 libxkbfile libxklavier libxres lxmenu-data man-db menu-cache mesa startup-notification vte-common vte3 xf86-input-libinput xmms2 xorg-fonts-alias-100dpi xorg-fonts-alias-75dpi xorg-fonts-alias-cyrillic xorg-fonts-alias-misc xorg-util-macros xorgproto [eliminación] xorgproto-git gpicview lightdm lxappearance lxappearance-obconf lxde-common lxde-icon-theme lxdm lxhotkey lxinput lxlauncher lxmusic lxpanel lxrandr lxsession lxtask lxterminal openbox pcmanfm xf86-video-vesa xorg-bdftopcf xorg-docs xorg-font-util xorg-fonts xorg-fonts-75dpi xorg-fonts-encodings xorg-iceauth xorg-mkfontscale xorg-server-common-git xorg-server-devel-git xorg-server-git xorg-server-src xorg-server-xephyr-git xorg-server-xnest-git xorg-server-xvfb-git xorg-sessreg xorg-setxkbmap xorg-smproxy xorg-x11perf xorg-xauth xorg-xbacklight xorg-xcmsdb xorg-xcursorgen xorg-xdpyinfo xorg-xdriinfo xorg-xev xorg-xgamma xorg-xhost xorg-xinput xorg-xkbcomp xorg-xkbevd xorg-xkbutils xorg-xkill xorg-xlsatoms xorg-xlsclients xorg-xmodmap xorg-xpr xorg-xprop xorg-xrandr xorg-xrdb xorg-xrefresh xorg-xset xorg-xsetroot xorg-xvinfo xorg-xwayland xorg-xwd xorg-xwininfo xorg-xwud
 

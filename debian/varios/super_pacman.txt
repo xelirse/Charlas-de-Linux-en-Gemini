@@ -7,3 +7,129 @@ pacman -Sy --overwrite="*" python-pyasn1 python-mdit_py_plugins python-linkify-i
 pacman -Sy --overwrite="*" python-automat python-appdirs python-priority python-pyserial python-service-identity gunicorn python-aiodns python-socksio python-anyio python-trio python-sniffio python-trio python-outcome python-uvloop python-pytest python-zstandard python-socksio python-click python-rich python-pygments python-trio python-cairo
 
 pacman -Sy --overwrite="*" python-eventlet python-gevent python-setproctitle
+
+pacman -Syu --overwrite="*" gd perl bash harfbuzz sh python dconf glib2-devel gvfs lvm2 util-linux smtp-forwarder ca-certificates audispd-plugins audispd-plugins-zos java-runtime libwebp-utils freeglut dav1d-doc graphite-docs harfbuzz-utils libheif libopenraw libwmf tpm2-tss cairo rrdtool adwaita-cursors opengl-man-pages samba gtk4 gstreamer intel-media-driver libva-intel-driver libva-mesa-driver libxkbcommon-x11 wayland vulkan-driver gtk3 libevent nss-mdns python-dbus python-gobject python-twisted evince xdg-desktop-portal-gtk
+
+pacman -Syu --overwrite="*" ffmpeg qt5-base sdl libjpeg-turbo libpng libtiff dav1d ffmpeg openjpeg2 rav1e svt-av1 perl python-setuptools python-pip python-pipx sqlite xz tk org.freedesktop.secrets libfido2 sh x11-ssh-askpass xorg-xauth gtk4 java-runtime less util-linux diffutils words libmicrohttpd apparmor quota-tools systemd-sysvcompat systemd-ukify polkit curl gnutls qrencode iptables libarchive libbpf libpwquality libfido2 libp11-kit tpm2-tss libblockdev-btrfs libblockdev-crypto libblockdev-dm libblockdev-fs libblockdev-loop libblockdev-lvm libblockdev-mdraid libblockdev-mpath libblockdev-nvdimm libblockdev-nvme libblockdev-part libblockdev-smart libblockdev-swap python-libblockdev gcr gtk3 qt5-x11extras kwayland5 kguiaddons kwindowsystem pcsclite python-volume_key python btrfs-progs dosfstools exfatprogs f2fs-tools nilfs-utils ntfs-3g udftools xfsprogs bash smartmontools udisks2-btrfs udisks2-lvm2 udisks2-docs btrfs-progs dosfstools exfatprogs e2fsprogs f2fs-tools less nilfs-utils udftools xfsprogs gvfs-afc gvfs-dnssd gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-onedrive gvfs-smb gvfs-wsdd java-rhino alsa-lib gtk3 python-libevdev python-pyudev libinput-tools nvidia-settings=390.157 xorg-server-devel opencl-nvidia=390.157 python gdk-pixbuf2 perl tcl python ruby lua51 python python python python python-dnspython python-markdown glusterfs python python-dnspython python-markdown glusterfs python-dnspython python-markdown python-cryptography evince python-gobject python-cairo python-graphviz python-twisted python-inflect python-keyring python-xdg python-setuptools python-appdirs python-bcrypt python-cryptography python-h2 python-idna python-priority python-pyasn1 python-gobject python-pyopenssl python-pyserial python-service-identity tk aspell hspell hunspell libvoikko nuspell gtk3 poppler-data texlive-bin gst-plugin-pipewire pipewire-alsa pipewire-audio pipewire-docs pipewire-ffado pipewire-jack pipewire-libcamera pipewire-pulse pipewire-roc pipewire-session-manager pipewire-v4l2 pipewire-x11-bell pipewire-zeroconf realtime-privileges rtkit
+
+# Elegir exim
+pacman -Sy --overwrite="*" sh dconf glib2-devel gvfs harfbuzz java-runtime libwebp-utils freeglut python java-runtime dav1d-doc graphite-docs harfbuzz-utils libheif libheif libopenraw libwmf gtk3 libevent nss-mdns python-dbus python-gobject python-twisted cairo rrdtool perl adwaita-cursors opengl-man-pages libxkbcommon-x11 wayland samba evince less util-linux diffutils words libmicrohttpd apparmor quota-tools systemd-sysvcompat systemd-ukify polkit curl gnutls qrencode iptables libarchive libbpf libpwquality libfido2 libp11-kit tpm2-tss python python-setuptools python-pip python-pipx sqlite xz tk python-cairo python smtp-server smtp-forwarder btrfs-progs grub-btrfs xorg-xhost
+
+# mv /usr/lib/aspell /usr/lib/aspell0
+# filesystem: /usr/lib64 exists in filesystem
+# filesystem: /usr/sbin exists in filesystem
+
+# Problemas texlive
+
+pacman -Sy --overwrite="*" org.freedesktop.secrets libfido2 sh x11-ssh-askpass xorg-xauth gtk4 java-runtime libblockdev-btrfs libblockdev-crypto libblockdev-dm libblockdev-fs libblockdev-loop libblockdev-lvm libblockdev-mdraid libblockdev-mpath libblockdev-nvdimm libblockdev-nvme libblockdev-part libblockdev-smart libblockdev-swap python-libblockdev gcr gtk3 qt5-x11extras kwayland5 kguiaddons kwindowsystem pcsclite python-volume_key python btrfs-progs dosfstools exfatprogs f2fs-tools nilfs-utils ntfs-3g udftools xfsprogs bash smartmontools udisks2-btrfs udisks2-lvm2 udisks2-docs btrfs-progs dosfstools exfatprogs e2fsprogs f2fs-tools less nilfs-utils udftools xfsprogs gvfs-afc gvfs-dnssd gvfs-goa gvfs-google gvfs-gphoto2 gvfs-mtp gvfs-nfs gvfs-onedrive gvfs-smb gvfs-wsdd java-rhino alsa-lib gtk3 ffmpeg qt5-base sdl libjpeg-turbo libpng libtiff dav1d ffmpeg openjpeg2 rav1e svt-av1 python gdk-pixbuf2 python-gobject python-graphviz python-twisted python-inflect python-keyring python-xdg python-setuptools python-appdirs python-bcrypt python-cryptography python-h2 python-idna python-priority python-pyasn1 python-gobject python-pyopenssl python-pyserial python-service-identity tk perl tcl python ruby lua51 python python python python python-dnspython python-markdown glusterfs python python-dnspython python-markdown glusterfs python-dnspython python-markdown python-cryptography aspell hspell hunspell libvoikko nuspell python gtk3 poppler-data perl python-gobject python-notify2 python-psutil ruby sqlite debuginfod perl python-setuptools python-pillow sbsigntools python libusb python e2fsprogs git appstream dosfstools efibootmgr freetype2 fuse3 libisoburn libusb lzop mtools os-prober snapper inotify-tools texlive texlive-bin texlive-basic
+
+# Problema fc-cache-32
+pacman -Sy --overwrite="*" lib32-fontconfig
+
+pacman -Syu --overwrite="*" psutils perl-file-homedir gcc mcpp libheif libid3tag libspectre faad2 fluidsynth libao libdiscid libgme libmad libmms libmpcdec libshout opusfile wavpack lua-lgi wireless_tools xarchiver accountsservice lightdm-gtk-greeter
+
+pacman -Syu --overwrite="*" arj cpio lha lrzip lzip p7zip unarj unrar unzip
+
+# Opción 1
+pacman -Syu --overwrite="*" harfbuzz imlib2 libde265 libdecor libei libfm libfm-extra libfm-gtk3 libfontenc libkeybinder3 libnotify libpipeline libwnck3 libxcvt libxfont2 libxkbfile libxklavier libxres lxmenu-data man-db menu-cache mesa startup-notification vte-common vte3 xf86-input-libinput xmms2 xorg-fonts-alias-100dpi xorg-fonts-alias-75dpi xorg-fonts-alias-cyrillic xorg-fonts-alias-misc xorg-util-macros xorgproto [eliminación] xorgproto-git gpicview lightdm lxappearance lxappearance-obconf lxde-common lxde-icon-theme lxdm lxhotkey lxinput lxlauncher lxmusic lxpanel lxrandr lxsession lxtask lxterminal openbox pcmanfm xf86-video-vesa xorg-bdftopcf xorg-docs xorg-font-util xorg-fonts xorg-fonts-75dpi xorg-fonts-encodings xorg-iceauth xorg-mkfontscale xorg-server-common-git xorg-server-devel-git xorg-server-git xorg-server-src xorg-server-xephyr-git xorg-server-xnest-git xorg-server-xvfb-git xorg-sessreg xorg-setxkbmap xorg-smproxy xorg-x11perf xorg-xauth xorg-xbacklight xorg-xcmsdb xorg-xcursorgen xorg-xdpyinfo xorg-xdriinfo xorg-xev xorg-xgamma xorg-xhost xorg-xinput xorg-xkbcomp xorg-xkbevd xorg-xkbutils xorg-xkill xorg-xlsatoms xorg-xlsclients xorg-xmodmap xorg-xpr xorg-xprop xorg-xrandr xorg-xrdb xorg-xrefresh xorg-xset xorg-xsetroot xorg-xvinfo xorg-xwayland xorg-xwd xorg-xwininfo xorg-xwud
+
+# Opción 2
+pacman -Syu --overwrite="*" groff
+pacman -Syu --overwrite="*" imlib2
+pacman -Syu --overwrite="*" libde265
+pacman -Syu --overwrite="*" libdecor
+pacman -Syu --overwrite="*" libei
+pacman -Syu --overwrite="*" libfm
+pacman -Syu --overwrite="*" libfm-extra
+pacman -Syu --overwrite="*" libfm-gtk3
+pacman -Syu --overwrite="*" libfontenc
+pacman -Syu --overwrite="*" libkeybinder3
+pacman -Syu --overwrite="*" libnotify
+pacman -Syu --overwrite="*" libpipeline
+pacman -Syu --overwrite="*" libwnck3
+pacman -Syu --overwrite="*" libxcvt
+pacman -Syu --overwrite="*" libxfont2
+pacman -Syu --overwrite="*" libxkbfile
+pacman -Syu --overwrite="*" libxklavier
+pacman -Syu --overwrite="*" libxres
+pacman -Syu --overwrite="*" lxmenu-data
+pacman -Syu --overwrite="*" man-db
+pacman -Syu --overwrite="*" menu-cache
+pacman -Syu --overwrite="*" mesa
+pacman -Syu --overwrite="*" startup-notification
+pacman -Syu --overwrite="*" vte-common
+pacman -Syu --overwrite="*" vte3
+pacman -Syu --overwrite="*" xf86-input-libinput
+pacman -Syu --overwrite="*" xmms2
+pacman -Syu --overwrite="*" xorg-fonts-alias
+pacman -Syu --overwrite="*" xorg-fonts-alias-75dpi
+pacman -Syu --overwrite="*" xorg-util-macros
+pacman -Syu --overwrite="*" xorgproto
+pacman -Syu --overwrite="*" xorgproto-git
+pacman -Syu --overwrite="*" gpicview
+pacman -Syu --overwrite="*" lightdm
+pacman -Syu --overwrite="*" lxappearance
+pacman -Syu --overwrite="*" lxappearance-obconf
+pacman -Syu --overwrite="*" lxde-common
+pacman -Syu --overwrite="*" lxde-icon-theme
+pacman -Syu --overwrite="*" lxdm
+pacman -Syu --overwrite="*" lxhotkey
+pacman -Syu --overwrite="*" lxinput
+pacman -Syu --overwrite="*" lxlauncher
+pacman -Syu --overwrite="*" lxmusic
+pacman -Syu --overwrite="*" lxpanel
+pacman -Syu --overwrite="*" lxrandr
+pacman -Syu --overwrite="*" lxsession
+pacman -Syu --overwrite="*" lxtask
+pacman -Syu --overwrite="*" lxterminal
+pacman -Syu --overwrite="*" openbox
+pacman -Syu --overwrite="*" pcmanfm
+pacman -Syu --overwrite="*" xf86-video-vesa
+pacman -Syu --overwrite="*" xorg-bdftopcf
+pacman -Syu --overwrite="*" xorg-docs
+pacman -Syu --overwrite="*" xorg-font-util
+pacman -Syu --overwrite="*" xorg-fonts
+pacman -Syu --overwrite="*" xorg-fonts-75dpi
+pacman -Syu --overwrite="*" xorg-fonts-encodings
+pacman -Syu --overwrite="*" xorg-iceauth
+pacman -Syu --overwrite="*" xorg-mkfontscale
+pacman -Syu --overwrite="*" xorg-server-common-git
+pacman -Syu --overwrite="*" xorg-server-devel-git
+pacman -Syu --overwrite="*" xorg-server-git
+pacman -Syu --overwrite="*" xorg-server-src
+pacman -Syu --overwrite="*" xorg-server-xephyr-git
+pacman -Syu --overwrite="*" xorg-server-xnest-git
+pacman -Syu --overwrite="*" xorg-server-xvfb-git
+pacman -Syu --overwrite="*" xorg-sessreg
+pacman -Syu --overwrite="*" xorg-setxkbmap
+pacman -Syu --overwrite="*" xorg-smproxy
+pacman -Syu --overwrite="*" xorg-x11perf
+pacman -Syu --overwrite="*" xorg-xauth
+pacman -Syu --overwrite="*" xorg-xbacklight
+pacman -Syu --overwrite="*" xorg-xcmsdb
+pacman -Syu --overwrite="*" xorg-xcursorgen
+pacman -Syu --overwrite="*" xorg-xdpyinfo
+pacman -Syu --overwrite="*" xorg-xdriinfo
+pacman -Syu --overwrite="*" xorg-xev
+pacman -Syu --overwrite="*" xorg-xgamma
+pacman -Syu --overwrite="*" xorg-xhost
+pacman -Syu --overwrite="*" xorg-xinput
+pacman -Syu --overwrite="*" xorg-xkbcomp
+pacman -Syu --overwrite="*" xorg-xkbevd
+pacman -Syu --overwrite="*" xorg-xkbutils
+pacman -Syu --overwrite="*" xorg-xkill
+pacman -Syu --overwrite="*" xorg-xlsatoms
+pacman -Syu --overwrite="*" xorg-xlsclients
+pacman -Syu --overwrite="*" xorg-xmodmap
+pacman -Syu --overwrite="*" xorg-xpr
+pacman -Syu --overwrite="*" xorg-xprop
+pacman -Syu --overwrite="*" xorg-xrandr
+pacman -Syu --overwrite="*" xorg-xrdb
+pacman -Syu --overwrite="*" xorg-xrefresh
+pacman -Syu --overwrite="*" xorg-xset
+pacman -Syu --overwrite="*" xorg-xsetroot
+pacman -Syu --overwrite="*" xorg-xvinfo
+pacman -Syu --overwrite="*" xorg-xwayland
+pacman -Syu --overwrite="*" xorg-xwd
+pacman -Syu --overwrite="*" xorg-xwininfo
+pacman -Syu --overwrite="*" xorg-xwud

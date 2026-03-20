@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# # 1. Entramos al directorio de librerías del sistema dañado
+# 1. Entramos al directorio de librerías del sistema dañado
 cd /n/lib/x86_64-linux-gnu/
 
 # 2. Borramos el archivo que 'tar' puso ahí erróneamente como archivo fijo

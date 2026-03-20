@@ -1,0 +1,5 @@
+#!/bin/sh
+
+reset
+x="$1"
+grep -Er "\b${x}\b" 2>&1 | grep -E "typedef|define" | grep -E "typedef|define|${x}" 

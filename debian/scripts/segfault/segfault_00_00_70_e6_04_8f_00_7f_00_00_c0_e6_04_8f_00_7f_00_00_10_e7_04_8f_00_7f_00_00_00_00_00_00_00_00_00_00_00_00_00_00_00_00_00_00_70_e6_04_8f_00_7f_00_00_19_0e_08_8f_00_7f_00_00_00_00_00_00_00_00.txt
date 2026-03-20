@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # # 1. Entramos al directorio de librerías del sistema dañado
 cd /n/lib/x86_64-linux-gnu/
 

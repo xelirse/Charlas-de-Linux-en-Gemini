@@ -1,4 +1,4 @@
-[manjaro n]# # 1. Entramos al directorio de librerías del sistema dañado
+# # 1. Entramos al directorio de librerías del sistema dañado
 cd /n/lib/x86_64-linux-gnu/
 
 # 2. Borramos el archivo que 'tar' puso ahí erróneamente como archivo fijo
@@ -10,10 +10,9 @@ ln -s libc-2.41.so libc.so.6
 
 # 4. Volvemos a la carpeta base
 cd /n
-[manjaro n]# ldconfig -r /n
-ldconfig: /usr/lib/libssl.so.3 is not a symbolic link
+ldconfig -r /n
+# ldconfig: /usr/lib/libssl.so.3 is not a symbolic link
+# ldconfig: /usr/lib/libcrypto.so.3 is not a symbolic link
 
-ldconfig: /usr/lib/libcrypto.so.3 is not a symbolic link
-
-[manjaro n]# chroot /n /bin/sh
+chroot /n /bin/sh
 # exit

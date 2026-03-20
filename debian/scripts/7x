@@ -1,0 +1,70 @@
+#!/bin/busybox ash
+
+# 1. Obtener la ruta desde la cual el usuario ejecutó el comando
+# $PWD es una variable de entorno que siempre apunta al directorio actual
+RUTA_INVOCACION="$PWD"
+
+# 2. Cambiar a esa ruta (aunque técnicamente ya estás ahí,
+# esto asegura que el script 'se mueva' a ella internamente)
+cd "$RUTA_INVOCACION"
+
+# 3. Tu lógica para procesar el .deb (ejemplo)
+echo "Ejecutando desde: $RUTA_INVOCACION"
+echo "Procesando archivo: $1"
+
+for elemento in $@; do
+    nombre_paquete_con_extension=$(basename "$elemento")
+    # Limpieza: nos quedamos con lo anterior al primer guion
+    nombre_paquete_sin_extension=$( echo "$nombre_paquete_con_extension" | sed -E "s/[-_].+$//g" )
+
+    echo "------------------------------------------"
+    echo "Paquete: $nombre_paquete_con_extension"
+    echo "Carpeta: $nombre_paquete_sin_extension"
+    echo "Elemento: $elemento"
+    echo "------------------------------------------"
+
+    mkdir -pv "$nombre_paquete_sin_extension/$nombre_paquete_sin_extension"
+    cd "$nombre_paquete_sin_extension" || continue
+    if [ -f "$elemento" ]; then
+        cp -v "$elemento" "$nombre_paquete_sin_extension/"
+    elif [[ "$elemento" =~ ^https?:// ]]; then
+        echo "wget: $elemento"
+        wget "$elemento"
+    else
+        continue
+    fi
+    archivo="$nombre_paquete_con_extension"
+    echo "archivo $archivo"
+    cp -v "$archivo" "$nombre_paquete_sin_extension/$nombre_paquete_con_extension"
+    if [ -d "$nombre_paquete_sin_extension" ]; then
+        cd "$nombre_paquete_sin_extension" || exit
+
+        # --- EL ARREGLO ESTÁ AQUÍ ---
+        if [[ "$archivo" == *.zst ]]; then
+            tar xvf "$archivo"
+        else
+            7z x -y "$archivo"
+        fi
+
+        if ls *.tar 1> /dev/null 2>&1; then
+            # También aquí por si el tar interno tiene nombres raros
+            tar xvf *.tar
+        fi
+
+        # Borramos el comprimido antes de inyectar
+        rm -fv "$archivo" *.tar*
+
+        # Inyección (solo si la carpeta no está vacía para evitar errores)
+        if [ "$(ls -A .)" ]; then
+            echo "Inyectando archivos en / ..."
+            echo "Inyectando archivos en / ..."
+            cp -vfr ./* /
+        else
+            echo "Error: No se extrajo nada, abortando copia."
+        fi
+
+        cd ..
+        echo "Finalizado: $nombre_paquete_sin_extension"
+        echo "------------------------------------------"
+    fi
+done

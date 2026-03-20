@@ -1,77 +1,88 @@
-Nombre                          Debian                 Arch Linux        Fedora
-locale-archive                  |                      |                 glibc-all-langpacks
-gnupg2.sh                       |                      |                 gnupg2
-update-alternatives             dpkg                   dpkg              alternatives
-java-openjfx                    |                      java-openjfx      |
-libsystemd-shared-259.5-1.so    |                      systemd           |
-libalpm.so.16                   |                      pacman            |
-libmagic.so.1                   |                      file              |
-libnm.so.0                      |                      libnm             |
-libxml2.so.2                    |                      libxml2-legacy    |
-libmagic.so.1                   |                      file              |
-libxmlb.so.2                    |                      libxmlb           |
-libsudo_util.so.0               |                      sudo              |
-libbfd-2.46.so                  |                      binutils          |
-libisc-9.20.20.so               |                      bind              |
-libgc.so.1                      |                      gc                |
-libcrypt.so.2                   |                      libxcrypt         |
-libunwind-ptrace.so.0           |                      libunwind         |
-libgpgme.so.45                  |                      gpgme             |
-libjemalloc.so.2                |                      libjemalloc2      |
-70-dkms-upgrade.hook            |                      dkms              |
-libdevmapper.so.1.02            |                      device-mapper     |
-libmalcontent-0.so.0            |                      libmalcontent     |
-pcre2                           |                      pcre2             |
-libostree-1.so.1                |                      ostree            |
-libsodium.so.26                 |                      libsodium         |
-libpcre2-8.so.0                 |                      pcre2             |
-libselinux.so.1                 |                      libselinux        |
-texlive-fmtutil                 |                      texlive-basic     |
-texlive-updmap                  |                      texlive-basic     |
-reflector                       |                      reflector         |
-fc-cache-32                     |                      lib32-fontconfig  |
-libfontforge.so.4               |                      fontforge         |
-nologin                         |                      util-linux        |
-libtinfo.so.6                   |                      ncurses           |
-libncursesw.so.6                |                      ncurses           |
-libcrypto.so.3                  |                      openssl           |
-xorg-server                     |                      xorg-server       |
-debootstrap                     debootstrap            debootstrap       |
-msgmerge                        gettext                gettext           |
-gpgme-tool                      libgpgme-dev           gpgme             |
-bsdtar                          libarchive-tools       libarchive        |
-task-lxde-desktop               task-lxde-desktop      (ninguno)         |
-presubj                         linux-image-amd64      (ninguno)         |
-sudo                            sudo                   |                 |
-man-db                          man-db                 |                 |
-libsystemd-shared-257.so        libsystemd-shared      |                 |
-find                            findutils              |                 |
-setlocale                       libghc-setlocale-prof  |                 |
-mkinitramfs                     initramfs-tools-core   |                 |
-libgvfscommon.so                gvfs-libs              |                 |
-libgioremote-volume-monitor.so  gvfs                   |                 |
-libgvfsdbus.so                  gvfs                   |                 |
-iconvconfig                     libc-bin               |                 |
-nmcli                           network-manager        |                 |
-libbfd-2.44-system.so           libbinutils            |                 |
-libpulsecommon-17.0.so          libpulse0              |                 |
-libQt6Core.so.6                 nsight-compute         |                 |
-libQt6Core.so.6                 nsight-systems         |                 |
-appstreamcli                    appstream              |                 |
-bc                              bc                     |                 |
-iconvconfig                     libc-bin               |                 |
-systemd-udevd.service           systemd                |                 |
-Log.pm                          debconf                |                 |
-AdduserCommon.pm                adduser                |                 |
-DebianLinux.pm                  linux-base             |                 |
-gstreamer1.0-plugins-bad        gstreamer1.0           |                 |
-update-initramfs                initramfs-tools        |                 |
------------------+------------------------------------++---------------+-+
-                 |  Adontie                           |  openSUSE SLE  | |
-drv_types.h      |  rtl8188gu-dkms-git-r12.9dec829-1  |                | |
-/etc/default/su  |                                    |  util-linux    | |
--------------+--------------------------------+---+---+----------------+-+
-Búsquedas en Google                           |                          |
-"/lib/modules/6.19.8-arch1-1" site:pkgs.org   |  linux-6.19.8.arch1-1    |
-"es_AR.utf8/LC_IDENTIFICATION" site:pkgs.org  |  glibc-langpack-es       |
-----------------------------------------------+--------------------------+
+Nombre                          Debian                  Arch Linux        Fedora
+locale-archive                  |                       |                 glibc-all-langpacks
+gnupg2.sh                       |                       |                 gnupg2
+update-alternatives             dpkg                    dpkg              alternatives
+SAX/Parser.pm                   |                       |                 perl-XML-LibXML
+fields.pm                       perl-base perl-modules  perl              perl-fields
+libselinux.so.1                 |                       libselinux        libselinux
+libsepol.so.2                   |                       |                 libsepol
+java-openjfx                    |                       java-openjfx      |
+libsystemd-shared-259.5-1.so    |                       systemd           |
+libalpm.so.16                   |                       pacman            |
+libmagic.so.1                   |                       file              |
+libnm.so.0                      |                       libnm             |
+libxml2.so.2                    |                       libxml2-legacy    |
+libmagic.so.1                   |                       file              |
+libxmlb.so.2                    |                       libxmlb           |
+libsudo_util.so.0               |                       sudo              |
+libbfd-2.46.so                  |                       binutils          |
+libisc-9.20.20.so               |                       bind              |
+libgc.so.1                      |                       gc                |
+libcrypt.so.2                   |                       libxcrypt         |
+libunwind-ptrace.so.0           |                       libunwind         |
+libgpgme.so.45                  |                       gpgme             |
+libjemalloc.so.2                |                       libjemalloc2      |
+70-dkms-upgrade.hook            |                       dkms              |
+libdevmapper.so.1.02            |                       device-mapper     |
+libmalcontent-0.so.0            |                       libmalcontent     |
+pcre2                           |                       pcre2             |
+libostree-1.so.1                |                       ostree            |
+libsodium.so.26                 |                       libsodium         |
+libpcre2-8.so.0                 |                       pcre2             |
+texlive-fmtutil                 |                       texlive-basic     |
+texlive-updmap                  |                       texlive-basic     |
+reflector                       |                       reflector         |
+fc-cache-32                     |                       lib32-fontconfig  |
+libfontforge.so.4               |                       fontforge         |
+nologin                         |                       util-linux        |
+libtinfo.so.6                   |                       ncurses           |
+libncursesw.so.6                |                       ncurses           |
+libcrypto.so.3                  |                       openssl           |
+xorg-server                     |                       xorg-server       |
+debootstrap                     debootstrap             debootstrap       |
+msgmerge                        gettext                 gettext           |
+gpgme-tool                      libgpgme-dev            gpgme             |
+bsdtar                          libarchive-tools        libarchive        |
+db2x_manxml                     docbook2x               docbook2x         |
+task-lxde-desktop               task-lxde-desktop       (ninguno)         |
+presubj                         linux-image-amd64       (ninguno)         |
+sudo                            sudo                    |                 |
+man-db                          man-db                  |                 |
+libsystemd-shared-257.so        libsystemd-shared       |                 |
+find                            findutils               |                 |
+setlocale                       libghc-setlocale-prof   |                 |
+mkinitramfs                     initramfs-tools-core    |                 |
+libgvfscommon.so                gvfs-libs               |                 |
+libgioremote-volume-monitor.so  gvfs                    |                 |
+libgvfsdbus.so                  gvfs                    |                 |
+iconvconfig                     libc-bin                |                 |
+nmcli                           network-manager         |                 |
+libbfd-2.44-system.so           libbinutils             |                 |
+libpulsecommon-17.0.so          libpulse0               |                 |
+libQt6Core.so.6                 nsight-compute          |                 |
+libQt6Core.so.6                 nsight-systems          |                 |
+appstreamcli                    appstream               |                 |
+bc                              bc                      |                 |
+iconvconfig                     libc-bin                |                 |
+systemd-udevd.service           systemd                 |                 |
+Log.pm                          debconf                 |                 |
+AdduserCommon.pm                adduser                 |                 |
+DebianLinux.pm                  linux-base              |                 |
+gstreamer1.0-plugins-bad        gstreamer1.0            |                 |
+update-initramfs                initramfs-tools         |                 |
+libMagickCore-7.Q16HDRI.so.10   imagemagick             |                 |
+update-xmlcatalog               xml-core                |                 |
+update-catalog                  sgml-base               |                 |
+-----------------+-------------------------------------++---------------+-+
+Nombre           |  Adontie                           |  openSUSE SLE  |  |
+drv_types.h      |  rtl8188gu-dkms-git-r12.9dec829-1  |                |  |
+/etc/default/su  |                                    |  util-linux    |  |
+-----------------+------------------------------------+----------------+--+
+Nombre           |  CentOS                            |  Arch Linux       |
+XML/Parser.pm    |  perl-XML-Parser                   |  perl-xml-parser  |
+-----------------+------------------------------------+-------------------+
+Búsquedas en Google                           |                           |
+"/lib/modules/6.19.8-arch1-1" site:pkgs.org   |  linux-6.19.8.arch1-1     |
+"es_AR.utf8/LC_IDENTIFICATION" site:pkgs.org  |  glibc-langpack-es        |
+"XML/Parser.pm site:pkgs.org                  |  perl-XML-Parser          |
+----------------------------------------------+---------------------------+

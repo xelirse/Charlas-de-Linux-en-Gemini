@@ -1,0 +1,6 @@
+#!/bin/sh
+
+ldconfig /local/lib/x86_64-linux-gnu 2>&1 | \
+grep "is not a symbolic link" | \
+awk '{print $2}' | \
+xargs -I {} rm -v {} && ldconfig

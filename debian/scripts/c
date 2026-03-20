@@ -1,0 +1,2 @@
+#!/bin/sh
+manjaro-chroot /mnt bash

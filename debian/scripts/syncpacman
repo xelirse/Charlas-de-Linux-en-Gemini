@@ -1,0 +1,6 @@
+#!/bin/sh
+
+busybox chmod -R 755 /var/lib/pacman/
+busybox chmod -R 777 /var/lib/pacman/sync/
+echo "" > /etc/ld.so.cache
+rm -rv /var/lib/pacman/sync/*

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for i in "$@"; do
+    busybox cp -v "$(which "$i" 2>/dev/null || echo "$i")" /otro/cpsh
+done

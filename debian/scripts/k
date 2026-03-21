@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Copia la carpeta local del disco al pendrive
+cp -vr ./local/* /

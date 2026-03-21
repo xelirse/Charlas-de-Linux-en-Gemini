@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Copia lo del disco al pendrive
+destino="./iso/bin"
+mkdir -p "$destino"
+OLDIFS=$IFS
+IFS=':'
+for d in $PATH; do
+    [ -d "$d" ] && cp -vuL "$d"/* "$destino" 2>/dev/null
+done
+IFS=$OLDIFS

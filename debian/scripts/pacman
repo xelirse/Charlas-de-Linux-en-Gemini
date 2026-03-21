@@ -1,50 +1,59 @@
 #!/bin/bash
 
-# 1. Definición de rutas
 pacman_real="/usr/bin/pacman.real"
-shadow_root="/tmp/pacman_shadow"
-log_file="/var/log/pacman_shadow.log"
+shadow_root="/var/lib/pacman_shadow"
+ldconfig_static="/usr/bin/ldconfig.static" 
 
-# 2. Si no es una operación de instalación (-S o -U), ejecutar normal y salir
 if [[ ! "$*" =~ -[a-zA-Z]*[SU] ]]; then
     exec "$pacman_real" "$@"
 fi
 
-echo "--- Iniciando instalación en modo Sombra (Shadow Install) ---"
+# --- PROTECCIÓN PREVENTIVA ---
+# Marcamos el resolv.conf como inmutable temporalmente
+chattr +i /etc/resolv.conf 2>/dev/null
 
-# 3. Limpiar y preparar el directorio temporal
-rm -rf "$shadow_root"
-mkdir -p "$shadow_root/var/lib/pacman"
-mkdir -p "$shadow_root/etc"
+# 1. Preparar sombra
+rm -rf "$shadow_root" >/dev/null 2>&1
+mkdir -p "$shadow_root"/{var/lib/pacman,usr/bin,usr/lib,etc}
 
-# Importante: Copiamos las firmas de pacman para que pueda verificar paquetes
-# y la base de datos de sincronización para que sepa qué descargar.
-cp -ra /var/lib/pacman/sync "$shadow_root/var/lib/pacman/" 2>/dev/null
-
-echo ">> Extrayendo paquetes en $shadow_root..."
-
-# 4. Ejecutar la instalación desviada
-# Añadimos --dbpath explícito para asegurar que pacman no se pierda
-"$pacman_real" "$@" --root "$shadow_root" --dbpath "$shadow_root/var/lib/pacman" --cachedir /var/cache/pacman/pkg
-
-if [ $? -ne 0 ]; then
-    echo "ERROR: La instalación en el directorio temporal falló."
+# 2. Instalación en la sombra
+# Usamos el internet que acabamos de arreglar
+"$pacman_real" "$@" --root "$shadow_root" --cachedir /var/cache/pacman/pkg --noconfirm || {
+    chattr -i /etc/resolv.conf 2>/dev/null
     exit 1
+}
+
+# 3. Limpieza de basura de ldconfig en la sombra
+rm -rf "$shadow_root"/etc/ld.so.cache
+rm -rf "$shadow_root"/var/cache/ldconfig
+find "$shadow_root" -name "ldconfig*" -exec rm -rf {} + 2>/dev/null
+
+# 4. Sincronización con Exclusiones Críticas
+echo ":: Sincronizando glibc..."
+
+# Forzamos la exclusión de TODA la carpeta etc si quieres ser radical, 
+# pero basta con excluir los archivos de configuración vitales.
+rsync -a --inplace \
+    --exclude="ldconfig*" \
+    --exclude="etc/resolv.conf" \
+    --exclude="etc/fstab" \
+    --exclude="var/lib/pacman/local" \
+    "$shadow_root/" / 2>/dev/null
+
+# 5. RESTAURAR EL LINK DE LIBC
+real_libc=$(ls -v /usr/lib/libc-[0-9]*.so 2>/dev/null | tail -n 1)
+[ -n "$real_libc" ] && ln -sf "$(basename "$real_libc")" /usr/lib/libc.so.6 2>/dev/null
+
+# 6. RESTAURAR TU LDCONFIG ESTÁTICO
+if [ -f "$ldconfig_static" ]; then
+    cp -f "$ldconfig_static" /usr/bin/ldconfig
 fi
 
-# 5. Sincronización recursiva hacia la raíz real (/)
-echo ">> Sincronizando archivos al sistema real (excluyendo ldconfig)..."
-rsync -avPH \
-    --exclude="usr/bin/ldconfig" \
-    --exclude="etc/ld.so.cache" \
-    --exclude="var/lib/pacman/local" \
-    "$shadow_root/" / >> "$log_file" 2>&1
+# 7. REGISTRO FINAL (dbonly)
+"$pacman_real" -S --root / --dbonly --noconfirm --overwrite '*' glibc
 
-# 6. Actualizar la base de datos de paquetes (db local)
-echo ">> Actualizando base de datos local..."
-rsync -a "$shadow_root/var/lib/pacman/local/" /var/lib/pacman/local/
+# --- LIBERAR PROTECCIÓN ---
+chattr -i /etc/resolv.conf 2>/dev/null
 
-# 7. Limpieza
-rm -rf "$shadow_root"
-
-exit 0
+rm -rf "$shadow_root" >/dev/null 2>&1
+echo ":: Hecho. Sistema actualizado y red preservada."

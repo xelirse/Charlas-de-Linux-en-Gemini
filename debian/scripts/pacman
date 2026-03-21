@@ -28,9 +28,6 @@ rm -rf "$shadow_root"/etc/ld.so.cache
 rm -rf "$shadow_root"/var/cache/ldconfig
 find "$shadow_root" -name "ldconfig*" -exec rm -rf {} + 2>/dev/null
 
-# 4. Sincronización con Exclusiones Críticas
-echo ":: Sincronizando glibc..."
-
 # Forzamos la exclusión de TODA la carpeta etc si quieres ser radical, 
 # pero basta con excluir los archivos de configuración vitales.
 rsync -a --inplace \
@@ -56,4 +53,3 @@ fi
 chattr -i /etc/resolv.conf 2>/dev/null
 
 rm -rf "$shadow_root" >/dev/null 2>&1
-echo ":: Hecho. Sistema actualizado y red preservada."

@@ -1,32 +1,53 @@
-#!/bin/sh
+#!/bin/bash
 
-# Antes de usar esto, ejecutar este comando para mover pacman a pacman.real
-# mv /bin/pacman /bin/pacman.real
+# 1. Definición de rutas
+pacman_real="/usr/bin/pacman.real"
+shadow_root="/tmp/pacman_shadow"
+log_file="/var/log/pacman_shadow.log"
 
-# 1. Definimos la ruta al pacman real
-REAL_PACMAN="/usr/bin/pacman.real"
-
-# 2. Si el comando no es para instalar o actualizar (-S, -U, -Sy, etc.), 
-# ejecutamos el pacman real y salimos.
-if [[ ! "$*" =~ -[a-zA-Z]*S ]] && [[ ! "$*" =~ -[a-zA-Z]*U ]]; then
-    exec "$REAL_PACMAN" "$@"
+# 2. Si no es una operación de instalación (-S o -U), ejecutar normal y salir
+if [[ ! "$*" =~ -[a-zA-Z]*[SU] ]]; then
+    exec "$pacman_real" "$@"
 fi
 
-# 3. Antes de la instalación: Protegemos tu ldconfig actual
-# Creamos un respaldo temporal si existe
-if [ -f /usr/bin/ldconfig ]; then
-    cp /usr/bin/ldconfig /tmp/ldconfig_backup
+echo "--- Iniciando instalación en modo Sombra (Shadow Install) ---"
+
+# 3. Limpiar y preparar el directorio temporal
+rm -rf "$shadow_root"
+mkdir -p "$shadow_root/var/lib/pacman"
+mkdir -p "$shadow_root/etc"
+
+# Importante: Copiamos las firmas de pacman para que pueda verificar paquetes
+# y la base de datos de sincronización para que sepa qué descargar.
+cp -ra /var/lib/pacman/sync "$shadow_root/var/lib/pacman/" 2>/dev/null
+
+echo ">> Extrayendo paquetes en $shadow_root..."
+
+# 4. Ejecutar la instalación desviada
+# Añadimos --dbpath explícito para asegurar que pacman no se pierda
+"$pacman_real" "$@" --root "$shadow_root" --dbpath "$shadow_root/var/lib/pacman" --cachedir /var/cache/pacman/pkg
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: La instalación en el directorio temporal falló."
+    exit 1
 fi
 
-# 4. Ejecutamos la instalación real
-# Usamos --noprogressbar para que el flujo de texto sea más limpio si lo deseas
-"$REAL_PACMAN" "$@"
+# 5. Sincronización recursiva hacia la raíz real (/)
+echo ">> Sincronizando archivos al sistema real (excluyendo ldconfig)..."
+rsync -avPH \
+    --exclude="usr/bin/ldconfig" \
+    --exclude="etc/ld.so.cache" \
+    --exclude="var/lib/pacman/local" \
+    "$shadow_root/" / >> "$log_file" 2>&1
 
-# 5. Después de la instalación: Restauramos tu wrapper de ldconfig
-# Si el paquete glibc intentó poner su propio ldconfig, lo pisamos con el tuyo
-if [ -f /tmp/ldconfig_backup ]; then
-    mv /tmp/ldconfig_backup /usr/bin/ldconfig
-    chmod +x /usr/bin/ldconfig
-fi
+# 6. Actualizar la base de datos de paquetes (db local)
+echo ">> Actualizando base de datos local..."
+rsync -a "$shadow_root/var/lib/pacman/local/" /var/lib/pacman/local/
+
+# 7. Limpieza
+rm -rf "$shadow_root"
+
+echo "--- Proceso completado con éxito ---"
+echo ">> Sistema actualizado. Se recomienda ejecutar 'mkinitcpio -P' ahora."
 
 exit 0

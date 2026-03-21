@@ -1,3 +1,24 @@
 #!/bin/sh
 
-dmesg | tail -n3
+# Carpeta temporal para guardar el estado previo
+STATE_FILE="/tmp/dmesg_marker"
+
+# 1. Guardar el estado actual del buffer (conteo de líneas)
+dmesg | wc -l > "$STATE_FILE"
+
+# 2. Ejecutar el comando que pasaste como parámetro
+echo "--- Ejecutando: $@ ---"
+"$@"
+
+# 3. Calcular cuántas líneas nuevas hay
+PREV_LINES=$(cat "$STATE_FILE")
+TOTAL_LINES=$(dmesg | wc -l)
+DIFF=$((TOTAL_LINES - PREV_LINES))
+
+# 4. Mostrar solo lo nuevo si hubo cambios
+echo "--- Salida de dmesg (solo nuevas líneas) ---"
+if [ "$DIFF" -gt 0 ]; then
+    dmesg | tail -n "$DIFF"
+else
+    echo "No hubo nuevos mensajes en el kernel."
+fi

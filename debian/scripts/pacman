@@ -47,7 +47,4 @@ rsync -a "$shadow_root/var/lib/pacman/local/" /var/lib/pacman/local/
 # 7. Limpieza
 rm -rf "$shadow_root"
 
-echo "--- Proceso completado con éxito ---"
-echo ">> Sistema actualizado. Se recomienda ejecutar 'mkinitcpio -P' ahora."
-
 exit 0

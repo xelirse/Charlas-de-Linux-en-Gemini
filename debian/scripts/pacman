@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# Antes de usar esto, ejecutar este comando para mover pacman a pacman.real
+# mv /bin/pacman /bin/pacman.real
+
+# 1. Definimos la ruta al pacman real
+REAL_PACMAN="/usr/bin/pacman.real"
+
+# 2. Si el comando no es para instalar o actualizar (-S, -U, -Sy, etc.), 
+# ejecutamos el pacman real y salimos.
+if [[ ! "$*" =~ -[a-zA-Z]*S ]] && [[ ! "$*" =~ -[a-zA-Z]*U ]]; then
+    exec "$REAL_PACMAN" "$@"
+fi
+
+# 3. Antes de la instalación: Protegemos tu ldconfig actual
+# Creamos un respaldo temporal si existe
+if [ -f /usr/bin/ldconfig ]; then
+    cp /usr/bin/ldconfig /tmp/ldconfig_backup
+fi
+
+# 4. Ejecutamos la instalación real
+# Usamos --noprogressbar para que el flujo de texto sea más limpio si lo deseas
+"$REAL_PACMAN" "$@"
+
+# 5. Después de la instalación: Restauramos tu wrapper de ldconfig
+# Si el paquete glibc intentó poner su propio ldconfig, lo pisamos con el tuyo
+if [ -f /tmp/ldconfig_backup ]; then
+    mv /tmp/ldconfig_backup /usr/bin/ldconfig
+    chmod +x /usr/bin/ldconfig
+fi
+
+exit 0

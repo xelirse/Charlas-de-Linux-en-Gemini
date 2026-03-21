@@ -3,14 +3,18 @@
 # Para usar esto primero hacer lo siguiente y guardar este archivo.
 # mv ldconfig ldconfig.real
 
-# Iteramos sobre todos los argumentos pasados al comando
-for arg in "$@"; do
-        # Si el argumento contiene "libc.so" o "libc-2", saltamos la ejecución para ese caso
-        if [[ "$arg" == *"libc.so"* ]] || [[ "$arg" == *"libc-"* ]]; then
-                return 0
-        fi
+# Ejecutamos el binario real, unificando salida de error y estándar
+# Leemos la salida línea por línea
+ldconfig.real "$@" 2>&1 | while IFS= read -r line; do
+    # 1. Ignorar si la línea está vacía (solo espacios o nula)
+    [[ -z "${line//[:space:]/}" ]] && continue
+
+    # 2. Ignorar si la línea contiene "libc.so" o "libc-"
+    [[ "$line" == *"libc.so"* ]] || [[ "$line" == *"libc-"* ]] && continue
+
+    # Si pasa los filtros, imprimimos la línea original
+    echo "$line"
 done
 
-# Si no se detectó libc en los argumentos, ejecutamos el binario real
-# Usamos "exec" para que el proceso real tome el lugar del script
-exec ldconfig.real "$@"
+# Forzamos salida exitosa para que los procesos de pacman/mkinitcpio continúen
+exit 0

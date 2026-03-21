@@ -17,16 +17,16 @@ Your mileage may vary.
 
 # Solución
 
+# Cambiar de ruta al punto de montaje
+cd /n
+
 # Salir de chroot
-
-# Montar directorios críticos del sistema
-mount --bind /dev /mnt/dev
-mount --bind /proc /mnt/proc
-mount --bind /sys /mnt/sys
-mount --bind /run /mnt/run
-
-# Montar soporte para terminales (esto quita el error de /dev/pts)
-mount --bind /dev/pts /mnt/dev/pts
+# Montar directorios del sistema
+mount --bind /dev     /n/dev
+mount --bind /proc    /n/proc
+mount --bind /sys     /n/sys
+mount --bind /run     /n/run
+mount --bind /dev/pts /n/dev/pts
 
 # Entrar
 manjaro-chroot . bash --login

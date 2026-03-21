@@ -1,3 +1,23 @@
 #!/bin/sh
 
-manjaro-chroot /n bash --login
+# Cambiar de ruta al punto de montaje
+cd /n
+
+# Para evitar errores chase
+mount -o subvol=@ /dev/sda1 .
+
+# Conecta afuera con adentro de chroot.
+mount --bind / /n/iso
+
+# Solucionar bug
+# Error: Can not write log (Is /dev/pts mounted?) - posix_openpt (2: No such file or directory)
+mount --bind /dev/pts /n/dev/pts
+
+# Montar proc
+mount --bind /proc /n/proc
+
+# Forzar copia de entrar hacia afuera de chroot
+cp -f /n/local/bin/entrar /bin
+
+# Entrar
+chroot . bash --login

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Ruta al binario real que renombramos previamente
+REAL_LDCONFIG="/usr/bin/ldconfig.real"
+
+# Función para procesar la lógica de exclusión
+function procesar_ldconfig() {
+    # Iteramos sobre todos los argumentos pasados al comando
+    for arg in "$@"; do
+        # Si el argumento contiene "libc.so" o "libc-2", saltamos la ejecución para ese caso
+        if [[ "$arg" == *"libc.so"* ]] || [[ "$arg" == *"libc-"* ]]; then
+            return 0
+        fi
+    done
+
+    # Si no se detectó libc en los argumentos, ejecutamos el binario real
+    # Usamos "exec" para que el proceso real tome el lugar del script
+    exec "$REAL_LDCONFIG" "$@"
+}
+
+# Ejecutamos la lógica
+procesar_ldconfig "$@"
+
+# Si llegamos aquí (por el return 0), salimos silenciosamente
+exit 0

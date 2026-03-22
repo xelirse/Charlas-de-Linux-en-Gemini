@@ -10,7 +10,7 @@ cp -vf etc/resolv.conf /etc/resolv.conf
 cp -vf etc/resolv.conf /etc/pacman.conf
 
 # Para dpkg-deb
-pacman -S --overwrite="*" dpkg strace busybox nix-busybox
+pacman -S --overwrite="*" dpkg strace busybox nix-busybox gdb
 
 if [ ! "/usr/lib/x86_64-linux-gnu/libc.so.6" ] ; then
     mkdir -p tmp/libc_rescue

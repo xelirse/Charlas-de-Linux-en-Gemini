@@ -1,6 +1,10 @@
 #!/bin/sh
 
-# Cambiar de ruta al punto de montaje
+export disco="n"
+export iso="iso"
+export fci="$disco/$iso"
+
+# Cambiar de ruta al disco de montaje
 cd /n
 
 # Para evitar errores chase
@@ -10,23 +14,26 @@ mount -o subvol=@ /dev/sda1 .
 umount /n/* 2>/dev/null
 
 # Conecta afuera con adentro de chroot.
-mount --bind / /n/iso
+# mkdir -p "/$disco/$iso"
+mount --bind "/" "/$disco/$iso"
 
 # Montar /dev
-mount --bind /dev /n/dev
+n="dev"
+mount --bind "/$n" "/$disco/$n"
 
-# Solucionar bug
-# Error: Can not write log (Is /dev/pts mounted?) - posix_openpt (2: No such file or directory)
-mount --bind /dev/pts /n/dev/pts
+# Montar /dev dentro del disco
+mount --bind "/$n" "/$disco/$iso/$n"
 
-# Montar proc
-mount --bind /proc /n/proc
+# Montar proc sin bind (esto resuelve los errores de uuid y boot_id)
+n="proc"
+mount --bind "/$n" "/$disco/$n"
 
-# Montar sys
-mount -t sysfs sys /n/sys
+# Montar sysfs
+n="sys"
+mount -t "${n}fs" "/$n" "/$disco/$n"
 
 # Forzar copia de entrar hacia afuera de chroot
-cp -f /n/local/bin/entrar /bin
+cp "/$disco/local/bin/entrar" "/bin"
 
 # Entrar
 chroot . bash --login

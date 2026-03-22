@@ -7,7 +7,7 @@
 # Leemos la salida línea por línea
 ldconfig.real "$@" 2>&1 | while IFS= read -r line; do
         # 1. Ignorar si la línea está vacía (solo espacios o nula)
-        [[ $(echo "  " | grep -Ei "^([[:space:]]|\t)+$" ) ]] && continue
+        [[ $(echo "$line" | grep -Ei "^([[:space:]]|\t)+$" ) ]] && continue
 
         # 2. Ignorar si la línea contiene "libc.so" o "libc-"
         [[ "$line" == *"libc.so"* ]] || [[ "$line" == *"libc-"* ]] && continue

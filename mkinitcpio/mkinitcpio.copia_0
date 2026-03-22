@@ -324,11 +324,11 @@ decompress_firmware() {
 build_image() {
     local out="$1" compressout="$1" compress="$2" errprog
 
-    if [[ "$MODULES_DECOMPRESS" == 'yes' ]] && (( ${#_d_fwpath[@]} )); then
+    if [[ $MODULES_DECOMPRESS == 'yes' ]] && (( ${#_d_fwpath[@]} )); then
         decompress_firmware
     fi
 
-    case "$compress" in
+    case $compress in
         cat)
             if (( initcpio_is_temporary && _optquiet )); then
                 msg 'Creating uncompressed initcpio image'
@@ -339,25 +339,36 @@ build_image() {
             ;;
         *)
             if (( initcpio_is_temporary && _optquiet )); then
-                msg "Creating %s-compressed initcpio image" "$compress"
+                msg "Creating $compress-compressed initcpio image"
             else
-                msg "Creating %s-compressed initcpio image: '%s'" "$compress" "$out"
+                msg "Creating $compress-compressed initcpio image: '%s'" "$compress" "$out"
             fi
+
             # move all compressed files to the early cpio to avoid double compression
             local compressed_files=()
             mapfile -td '' compressed_files < <(find "$BUILDROOT" -type f \
                 -regextype posix-extended -regex '.*\.(bz2|gz|lz4|lzma|lzo|xz|zst)' -printf './%P\0')
+
             if (( ${#compressed_files[@]} )) && pushd "$BUILDROOT" >/dev/null; then
                 quiet "Moving to early root: '%s'" "${compressed_files[@]#.}"
+
                 # try to hard link files, fall back to copy if that fails
                 cp -flt "$EARLYROOT" --parents "${compressed_files[@]}" 2>/dev/null \
                     || cp -fat "$EARLYROOT" --parents "${compressed_files[@]}"
                 rm -f "${compressed_files[@]}"
+
                 # delete moved directories if they are empty, sorted by depth ascending
+                local d slashes depth_dirs=()
+                for d in "${compressed_files[@]%/*}"; do
+                    # Count slashes using pure bash to avoid awk
+                    slashes="${d//[^\/]/}"
+                    depth_dirs+=("${#slashes}	$d")
+                done
+
                 local moved_dirs=()
-                mapfile -td '' moved_dirs < <(printf '%s\0' "${compressed_files[@]%/*}" \
-                    | awk -vRS='\0' '{printf("%d\t%s\0", split($0, _, "/"), $0)}' \
+                mapfile -td '' moved_dirs < <(printf '%s\0' "${depth_dirs[@]}" \
                     | LC_ALL=C.UTF-8 sort -uz -k1n,1 -k2 | cut -zf2-)
+
                 while (( ${#moved_dirs[@]} )); do
                     mapfile -td '' moved_dirs < <(find "${moved_dirs[@]}" -maxdepth 0 -empty -delete -printf '%h\0' | uniq -z)
                 done
@@ -375,26 +386,23 @@ build_image() {
             ;;
     esac
 
-    if [[ -f "$out" ]]; then
+    if [[ -f $out ]]; then
         local curr_size space_left_on_device
+        curr_size=$(stat --format="%s" "$out")
+        space_left_on_device=$(stat -f --format="%a*%S" "$out")
 
-        curr_size="$(stat --format="%s" "$out")"
-        space_left_on_device="$(($(stat -f --format="%a*%S" "$out")))"
-
-        # check if there is enough space on the device to write the image to a tempfile, fallback otherwise
-        # this assumes that the new image is not more than 1¼ times the size of the old one
-        (( $((curr_size + (curr_size/4))) < space_left_on_device )) && compressout="$out".tmp
+        # check if there is enough space to write to a tempfile
+        (( curr_size + (curr_size / 4) < space_left_on_device )) && compressout="$out.tmp"
     fi
 
-    # initialize an empty output file
     : >"$compressout"
 
     # remove empty dirs and symlinks from EARLYROOT
     find "$EARLYROOT" -depth '(' -type d -empty -delete ')' -or '(' -xtype l -delete ')'
-    # if the EARLYROOT is not empty (except for the flag file), prepend it to the image
-    if [[ -n "$(LC_ALL=C.UTF-8 find "$EARLYROOT" -mindepth 1 -not -name early_cpio)" ]]; then
-        errprog="$(create_image "$EARLYROOT" "$compressout" early)"
-        ret="$?"
+
+    if [[ -n $(LC_ALL=C.UTF-8 find "$EARLYROOT" -mindepth 1 -not -name early_cpio) ]]; then
+        errprog=$(create_image "$EARLYROOT" "$compressout" early)
+        ret=$?
         if (( ret )); then
             error "Early uncompressed CPIO image generation FAILED: '%s' reported an error" "$errprog"
             return 1
@@ -403,8 +411,8 @@ build_image() {
         fi
     fi
 
-    errprog="$(create_image "$BUILDROOT" "$compressout" "$compress")"
-    ret="$?"
+    errprog=$(create_image "$BUILDROOT" "$compressout" "$compress")
+    ret=$?
     if (( ret )); then
         error "Initcpio image generation FAILED: '%s' reported an error" "$errprog"
         return 1
@@ -412,12 +420,9 @@ build_image() {
         msg "Initcpio image generation successful"
     fi
 
-    if (( _builderrors )); then
-        warning "errors were encountered during the build. The image may not be complete."
-    fi
+    (( _builderrors )) && warning "errors were encountered during the build. The image may not be complete."
 
-    # sync and rename as we only wrote to a tempfile so far to ensure consistency
-    if [[ "$compressout" != "$out" ]]; then
+    if [[ $compressout != $out ]]; then
         sync -d -- "$compressout"
         mv -f -- "$compressout" "$out"
     fi

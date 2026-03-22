@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Para usar esto primero hacer lo siguiente y guardar este archivo.
 # mv ldconfig ldconfig.real
@@ -6,14 +6,14 @@
 # Ejecutamos el binario real, unificando salida de error y estándar
 # Leemos la salida línea por línea
 ldconfig.real "$@" 2>&1 | while IFS= read -r line; do
-    # 1. Ignorar si la línea está vacía (solo espacios o nula)
-    [[ -z "${line//[:space:]/}" ]] && continue
+        # 1. Ignorar si la línea está vacía (solo espacios o nula)
+        [[ $(echo "  " | grep -Ei "^([[:space:]]|\t)+$" ) ]] && continue
 
-    # 2. Ignorar si la línea contiene "libc.so" o "libc-"
-    [[ "$line" == *"libc.so"* ]] || [[ "$line" == *"libc-"* ]] && continue
+        # 2. Ignorar si la línea contiene "libc.so" o "libc-"
+        [[ "$line" == *"libc.so"* ]] || [[ "$line" == *"libc-"* ]] && continue
 
-    # Si pasa los filtros, imprimimos la línea original
-    echo "$line"
+        # Si pasa los filtros, imprimimos la línea original
+        echo "$line"
 done
 
 # Forzamos salida exitosa para que los procesos de pacman/mkinitcpio continúen

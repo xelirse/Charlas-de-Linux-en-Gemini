@@ -9,6 +9,9 @@ mount -o subvol=@ /dev/sda1 .
 # Conecta afuera con adentro de chroot.
 mount --bind / /n/iso
 
+# Montar /dev
+mount --bind /dev /n/dev
+
 # Solucionar bug
 # Error: Can not write log (Is /dev/pts mounted?) - posix_openpt (2: No such file or directory)
 mount --bind /dev/pts /n/dev/pts
@@ -16,8 +19,11 @@ mount --bind /dev/pts /n/dev/pts
 # Montar proc
 mount --bind /proc /n/proc
 
+# Montar sys
+mount -t sysfs sys /n/sys
+
 # Forzar copia de entrar hacia afuera de chroot
-cp -fv /n/local/entrar /bin
+cp -f /n/local/bin/entrar /bin
 
 # Entrar
 chroot . bash --login

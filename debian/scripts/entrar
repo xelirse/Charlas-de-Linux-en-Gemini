@@ -8,21 +8,24 @@ export fci="$disco/$iso"
 cd "/$disco"
 
 # Para evitar errores chase
-mount -o subvol=@ /dev/sda1 .
+mount -o subvol=@ /dev/sda1 "/$disco"
 
 # Desmontar sistema del disco
 umount "/$disco/"* 2>/dev/null
 
 # Conecta afuera con adentro de chroot.
-mkdir -p "/$disco/$iso"
-mount --bind "/" "/$disco/$iso"
+mkdir -p "/$fci"
+mount --bind "/" "/$fci"
 
 # Montar /dev
 o="dev"
 mount --bind "/$o" "/$disco/$o"
 
 # Montar /dev dentro del disco
-mount --bind "/$o" "/$disco/$iso/$o"
+mount --bind "/$o" "/$fci/$o"
+
+p="pts"
+mount --bind "/$o/$p" "/$disco/$o/$p"
 
 # Montar proc sin bind (esto resuelve los errores de uuid y boot_id)
 o="proc"

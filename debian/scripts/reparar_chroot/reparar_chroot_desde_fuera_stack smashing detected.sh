@@ -13,7 +13,7 @@ if [ ! "/usr/lib/x86_64-linux-gnu/libc.so.6" ] ; then
     busybox rm -v /usr/lib/libc.so.6.broken
     busybox rm -v /usr/lib/x86_64-linux-gnu/libc.so
     busybox rm -v /usr/lib/x86_64-linux-gnu/libc.so.6
-    busybox rm -v //usr/lib/x86_64-linux-gnu/libc.so.6.0
+    busybox rm -v /usr/lib/x86_64-linux-gnu/libc.so.6.0
     busybox rm -v /usr/lib/x86_64-linux-gnu/libc.so.6.0.0
     busybox cp -vf /lib/libc.* /usr/lib/x86_64-linux-gnu
     busybox ls -lh /usr/lib/x86_64-linux-gnu/libc.so.6*

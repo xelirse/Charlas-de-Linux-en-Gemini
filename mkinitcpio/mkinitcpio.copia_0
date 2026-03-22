@@ -57,41 +57,41 @@ usage() {
 mkinitcpio $version
 usage: ${0##*/} [options]
 
-  Options:
-   -A, --addhooks <hooks>       Add specified hooks, comma separated, to image
-   -c, --config <config>        Use alternate config file. (default: /etc/mkinitcpio.conf)
-   -g, --generate <path>        Generate cpio image and write to specified path
-   -H, --hookhelp <hookname>    Display help for given hook and exit
-   -h, --help                   Display this message and exit
-   -k, --kernel <kernelver>     Use specified kernel version (default: $(uname -r))
-   -L, --listhooks              List all available hooks
-   -M, --automods               Display modules found via autodetection
-   -n, --nocolor                Disable colorized output messages
-       --nopost                 Disable post hooks
-   -p, --preset <file>          Build specified preset from /etc/mkinitcpio.d
-   -P, --allpresets             Process all preset files in /etc/mkinitcpio.d
-   -R, --remove                 Remove specified preset images
+Options:
+-A, --addhooks <hooks>       Add specified hooks, comma separated, to image
+-c, --config <config>        Use alternate config file. (default: /etc/mkinitcpio.conf)
+-g, --generate <path>        Generate cpio image and write to specified path
+-H, --hookhelp <hookname>    Display help for given hook and exit
+-h, --help                   Display this message and exit
+-k, --kernel <kernelver>     Use specified kernel version (default: $(uname -r))
+-L, --listhooks              List all available hooks
+-M, --automods               Display modules found via autodetection
+-n, --nocolor                Disable colorized output messages
+    --nopost                 Disable post hooks
+-p, --preset <file>          Build specified preset from /etc/mkinitcpio.d
+-P, --allpresets             Process all preset files in /etc/mkinitcpio.d
+-R, --remove                 Remove specified preset images
                                 This option can only be used with either '-p|--presets' or '-P|--allpresets'
-   -r, --moduleroot <dir>       Root directory for modules (default: /)
-   -S, --skiphooks <hooks>      Skip specified hooks, comma-separated, during build
-   -s, --save                   Save build directory. (default: no)
-   -d, --generatedir <dir>      Write generated image into <dir>
-   -t, --builddir <dir>         Use DIR as the temporary build directory
-   -D, --hookdir <dir>          Specify where to look for hooks
-   -U, --uki <path>             Build a unified kernel image
-   -V, --version                Display version information and exit
-   -v, --verbose                Verbose output (default: no)
-   -z, --compress <program>     Use an alternate compressor on the image (cat, xz, lz4, zstd)
+-r, --moduleroot <dir>       Root directory for modules (default: /)
+-S, --skiphooks <hooks>      Skip specified hooks, comma-separated, during build
+-s, --save                   Save build directory. (default: no)
+-d, --generatedir <dir>      Write generated image into <dir>
+-t, --builddir <dir>         Use DIR as the temporary build directory
+-D, --hookdir <dir>          Specify where to look for hooks
+-U, --uki <path>             Build a unified kernel image
+-V, --version                Display version information and exit
+-v, --verbose                Verbose output (default: no)
+-z, --compress <program>     Use an alternate compressor on the image (cat, xz, lz4, zstd)
 
-  Options for unified kernel image (-U, --uki):
-   --cmdline <path>             Set kernel command line from file
+Options for unified kernel image (-U, --uki):
+--cmdline <path>             Set kernel command line from file
                                 (default: /etc/kernel/cmdline or /proc/cmdline)
-   --no-cmdline                 Do not embed a kernel command line
-   --osrelease <path>           Include os-release (default: /etc/os-release)
-   --splash <path>              Include bitmap splash
-   --kernelimage <path>         Kernel image
-   --uefistub <path>            Location of UEFI stub loader
-   --ukiconfig <path>           Location of configuration file for UKIs, used for signing, etc.
+--no-cmdline                 Do not embed a kernel command line
+--osrelease <path>           Include os-release (default: /etc/os-release)
+--splash <path>              Include bitmap splash
+--kernelimage <path>         Kernel image
+--uefistub <path>            Location of UEFI stub loader
+--ukiconfig <path>           Location of configuration file for UKIs, used for signing, etc.
 
 EOF
 }
@@ -324,11 +324,11 @@ decompress_firmware() {
 build_image() {
     local out="$1" compressout="$1" compress="$2" errprog
 
-    if [[ $MODULES_DECOMPRESS == 'yes' ]] && (( ${#_d_fwpath[@]} )); then
+    if [[ "$MODULES_DECOMPRESS" == 'yes' ]] && (( ${#_d_fwpath[@]} )); then
         decompress_firmware
     fi
 
-    case $compress in
+    case "$compress" in
         cat)
             if (( initcpio_is_temporary && _optquiet )); then
                 msg 'Creating uncompressed initcpio image'
@@ -339,9 +339,9 @@ build_image() {
             ;;
         *)
             if (( initcpio_is_temporary && _optquiet )); then
-                msg "Creating $compress-compressed initcpio image"
+                msg "Creating %s-compressed initcpio image" "$compress"
             else
-                msg "Creating $compress-compressed initcpio image: '%s'" "$compress" "$out"
+                msg "Creating %s-compressed initcpio image: '%s'" "$compress" "$out"
             fi
 
             # move all compressed files to the early cpio to avoid double compression
@@ -386,23 +386,28 @@ build_image() {
             ;;
     esac
 
-    if [[ -f $out ]]; then
+    if [[ -f "$out" ]]; then
         local curr_size space_left_on_device
-        curr_size=$(stat --format="%s" "$out")
-        space_left_on_device=$(stat -f --format="%a*%S" "$out")
 
-        # check if there is enough space to write to a tempfile
-        (( curr_size + (curr_size / 4) < space_left_on_device )) && compressout="$out.tmp"
+        curr_size="$(stat --format="%s" "$out")"
+        space_left_on_device="$(($(stat -f --format="%a*%S" "$out")))"
+
+        # check if there is enough space on the device to write the image to a tempfile, fallback otherwise
+        # this assumes that the new image is not more than 1¼ times the size of the old one
+        (( $((curr_size + (curr_size/4))) < space_left_on_device )) && compressout="$out".tmp
+
     fi
 
+    # initialize an empty output file
     : >"$compressout"
 
     # remove empty dirs and symlinks from EARLYROOT
     find "$EARLYROOT" -depth '(' -type d -empty -delete ')' -or '(' -xtype l -delete ')'
 
-    if [[ -n $(LC_ALL=C.UTF-8 find "$EARLYROOT" -mindepth 1 -not -name early_cpio) ]]; then
-        errprog=$(create_image "$EARLYROOT" "$compressout" early)
-        ret=$?
+    # if the EARLYROOT is not empty (except for the flag file), prepend it to the image
+    if [[ -n "$(LC_ALL=C.UTF-8 find "$EARLYROOT" -mindepth 1 -not -name early_cpio)" ]]; then
+        errprog="$(create_image "$EARLYROOT" "$compressout" early)"
+        ret="$?"
         if (( ret )); then
             error "Early uncompressed CPIO image generation FAILED: '%s' reported an error" "$errprog"
             return 1
@@ -411,8 +416,8 @@ build_image() {
         fi
     fi
 
-    errprog=$(create_image "$BUILDROOT" "$compressout" "$compress")
-    ret=$?
+    errprog="$(create_image "$BUILDROOT" "$compressout" "$compress")"
+    ret="$?"
     if (( ret )); then
         error "Initcpio image generation FAILED: '%s' reported an error" "$errprog"
         return 1
@@ -420,9 +425,12 @@ build_image() {
         msg "Initcpio image generation successful"
     fi
 
-    (( _builderrors )) && warning "errors were encountered during the build. The image may not be complete."
+    if (( _builderrors )); then
+        warning "errors were encountered during the build. The image may not be complete."
+    fi
 
-    if [[ $compressout != $out ]]; then
+    # sync and rename as we only wrote to a tempfile so far to ensure consistency
+    if [[ "$compressout" != "$out" ]]; then
         sync -d -- "$compressout"
         mv -f -- "$compressout" "$out"
     fi
@@ -859,10 +867,10 @@ trap 'cleanup' EXIT
 
 _opt_short='A:c:D:g:H:hk:nLMPp:Rr:S:sd:t:U:Vvz:'
 _opt_long=('add:' 'addhooks:' 'config:' 'generate:' 'hookdir': 'hookhelp:' 'help'
-           'kernel:' 'listhooks' 'automods' 'moduleroot:' 'nocolor' 'nopost' 'allpresets'
-           'preset:' 'remove' 'skiphooks:' 'save' 'generatedir:' 'builddir:' 'version' 'verbose' 'compress:'
-           'uki:' 'uefi:' 'microcode:' 'splash:' 'kernelimage:' 'uefistub:' 'cmdline:' 'osrelease:' 'no-cmdline'
-           'ukiconfig:' 'no-ukify')
+        'kernel:' 'listhooks' 'automods' 'moduleroot:' 'nocolor' 'nopost' 'allpresets'
+        'preset:' 'remove' 'skiphooks:' 'save' 'generatedir:' 'builddir:' 'version' 'verbose' 'compress:'
+        'uki:' 'uefi:' 'microcode:' 'splash:' 'kernelimage:' 'uefistub:' 'cmdline:' 'osrelease:' 'no-cmdline'
+        'ukiconfig:' 'no-ukify')
 
 parseopts "$_opt_short" "${_opt_long[@]}" -- "$@" || exit 1
 set -- "${OPTRET[@]}"

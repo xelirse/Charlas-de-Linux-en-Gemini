@@ -324,43 +324,49 @@ decompress_firmware() {
 build_image() {
     local out="$1" compressout="$1" compress="$2" errprog
 
-    if [[ "${MODULES_DECOMPRESS}" == 'yes' ]] && (( ${#_d_fwpath[@]} )); then
+    if [[ $MODULES_DECOMPRESS == 'yes' ]] && (( ${#_d_fwpath[@]} )); then
         decompress_firmware
     fi
 
-    case "${compress}" in
+    case $compress in
         cat)
             if (( initcpio_is_temporary && _optquiet )); then
                 msg 'Creating uncompressed initcpio image'
             else
-                msg "Creating uncompressed initcpio image: '%s'" "${out}"
+                msg "Creating uncompressed initcpio image: '%s'" "$out"
             fi
             unset COMPRESSION_OPTIONS
             ;;
         *)
             if (( initcpio_is_temporary && _optquiet )); then
-                msg "Creating %s-compressed initcpio image" "${compress}"
+                msg "Creating $compress-compressed initcpio image"
             else
-                msg "Creating %s-compressed initcpio image: '%s'" "${compress}" "${out}"
+                msg "Creating $compress-compressed initcpio image: '%s'" "$compress" "$out"
             fi
 
             # move all compressed files to the early cpio to avoid double compression
             local compressed_files=()
-            mapfile -td '' compressed_files < <(find "${BUILDROOT}" -type f \
+            mapfile -td '' compressed_files < <(find "$BUILDROOT" -type f \
                 -regextype posix-extended -regex '.*\.(bz2|gz|lz4|lzma|lzo|xz|zst)' -printf './%P\0')
 
-            if (( ${#compressed_files[@]} )) && pushd "${BUILDROOT}" >/dev/null; then
+            if (( ${#compressed_files[@]} )) && pushd "$BUILDROOT" >/dev/null; then
                 quiet "Moving to early root: '%s'" "${compressed_files[@]#.}"
 
                 # try to hard link files, fall back to copy if that fails
-                cp -flt "${EARLYROOT}" --parents "${compressed_files[@]}" 2>/dev/null \
-                    || cp -fat "${EARLYROOT}" --parents "${compressed_files[@]}"
+                cp -flt "$EARLYROOT" --parents "${compressed_files[@]}" 2>/dev/null \
+                    || cp -fat "$EARLYROOT" --parents "${compressed_files[@]}"
                 rm -f "${compressed_files[@]}"
 
                 # delete moved directories if they are empty, sorted by depth ascending
+                local d slashes depth_dirs=()
+                for d in "${compressed_files[@]%/*}"; do
+                    # Count slashes using pure bash to avoid awk
+                    slashes="${d//[^\/]/}"
+                    depth_dirs+=("${#slashes}	$d")
+                done
+
                 local moved_dirs=()
-                mapfile -td '' moved_dirs < <(printf '%s\0' "${compressed_files[@]%/*}" \
-                    | awk -vRS='\0' '{printf("%d\t%s\0", split($0, _, "/"), $0)}' \
+                mapfile -td '' moved_dirs < <(printf '%s\0' "${depth_dirs[@]}" \
                     | LC_ALL=C.UTF-8 sort -uz -k1n,1 -k2 | cut -zf2-)
 
                 while (( ${#moved_dirs[@]} )); do
@@ -380,109 +386,47 @@ build_image() {
             ;;
     esac
 
-    if [[ -f "${out}" ]]; then
+    if [[ -f $out ]]; then
         local curr_size space_left_on_device
+        curr_size=$(stat --format="%s" "$out")
+        space_left_on_device=$(stat -f --format="%a*%S" "$out")
 
-        curr_size="$(stat --format="%s" "${out}")"
-        space_left_on_device="$(stat -f --format="%a*%S" "${out}")"
-
-        # check if there is enough space on the device to write the image to a tempfile, fallback otherwise
-        # this assumes that the new image is not more than 1¼ times the size of the old one
-        # Optimizado para ShellCheck (evitando la doble evaluación aritmética $(( $((...)) )))
-        (( curr_size + (curr_size / 4) < space_left_on_device )) && compressout="${out}.tmp"
+        # check if there is enough space to write to a tempfile
+        (( curr_size + (curr_size / 4) < space_left_on_device )) && compressout="$out.tmp"
     fi
 
-    # initialize an empty output file
-    : >"${compressout}"
+    : >"$compressout"
 
     # remove empty dirs and symlinks from EARLYROOT
-    find "${EARLYROOT}" -depth '(' -type d -empty -delete ')' -or '(' -xtype l -delete ')'
+    find "$EARLYROOT" -depth '(' -type d -empty -delete ')' -or '(' -xtype l -delete ')'
 
-    # if the EARLYROOT is not empty (except for the flag file), prepend it to the image
-    if [[ -n "$(LC_ALL=C.UTF-8 find "${EARLYROOT}" -mindepth 1 -not -name early_cpio)" ]]; then
-        errprog="$(create_image "${EARLYROOT}" "${compressout}" early)"
-        ret="$?"
+    if [[ -n $(LC_ALL=C.UTF-8 find "$EARLYROOT" -mindepth 1 -not -name early_cpio) ]]; then
+        errprog=$(create_image "$EARLYROOT" "$compressout" early)
+        ret=$?
         if (( ret )); then
-            error "Early uncompressed CPIO image generation FAILED: '%s' reported an error" "${errprog}"
+            error "Early uncompressed CPIO image generation FAILED: '%s' reported an error" "$errprog"
             return 1
         elif (( _builderrors == 0 )); then
             msg2 "Early uncompressed CPIO image generation successful"
         fi
     fi
 
-    errprog="$(create_image "${BUILDROOT}" "${compressout}" "${compress}")"
-    ret="$?"
+    errprog=$(create_image "$BUILDROOT" "$compressout" "$compress")
+    ret=$?
     if (( ret )); then
-        error "Initcpio image generation FAILED: '%s' reported an error" "${errprog}"
+        error "Initcpio image generation FAILED: '%s' reported an error" "$errprog"
         return 1
     elif (( _builderrors == 0 )); then
         msg "Initcpio image generation successful"
     fi
 
-    if (( _builderrors )); then
-        warning "errors were encountered during the build. The image may not be complete."
-    fi
+    (( _builderrors )) && warning "errors were encountered during the build. The image may not be complete."
 
-    # sync and rename as we only wrote to a tempfile so far to ensure consistency
-    if [[ "${compressout}" != "${out}" ]]; then
-        sync -d -- "${compressout}"
-        mv -f -- "${compressout}" "${out}"
+    if [[ $compressout != $out ]]; then
+        sync -d -- "$compressout"
+        mv -f -- "$compressout" "$out"
     fi
 }
-
-validate_compression() {
-    local major minor compression_fallback='zstd'
-
-    if [[ -z "$_optcompress" && -v COMPRESSION_OPTIONS && ! -v COMPRESSION ]]; then
-        warning 'COMPRESSION_OPTIONS is set without also setting COMPRESSION. Configure COMPRESSION explicitly!'
-    fi
-
-    # Linux < 5.9 does not support zstd-compressed initramfs. Fall back to gzip.
-    IFS=.- read -r major minor _ <<<"$KERNELVERSION"
-    if ! (( major > 5 || (major == 5 && minor >= 9) )); then
-        compression_fallback='gzip'
-        # Show a warning if zstd compression was explicitly configured.
-        if [[ "${_optcompress:-${COMPRESSION}}" == 'zstd' ]]; then
-            _optcompress=''
-            unset COMPRESSION COMPRESSION_OPTIONS
-            warning 'Kernel %s does not support zstd-compressed initramfs. Using gzip compression instead.' "$KERNELVERSION"
-        fi
-    fi
-    _optcompress="${_optcompress:-"${COMPRESSION:-${compression_fallback}}"}"
-
-    if ! type -P "$_optcompress" >/dev/null; then
-        warning "Unable to locate compression method: '%s'" "$_optcompress"
-        _optcompress='cat'
-    fi
-}
-
-want_file() {
-    # Find the first existing file and inform the user about the choice.
-    #   $1: variable the filename should be assigned to
-    #   $2: user readable purpose of the variable
-    #   ${@:3}: filenames to search through
-    #
-    # If the variable is already set to something, it is checked before all alternatives.
-    #
-    # Assigns the found filename to the variable.
-    # Returns 0 if a file is found, 1 if not.
-    # If a file is found, a debug message is generated.
-    # If not and alternatives were given, an error message is displayed.
-
-    local -n var="$1"
-    local what="$2" alternatives=("${@:3}") file
-    [[ -n "$var" ]] && alternatives=("$var" "${alternatives[@]}")
-    for file in "${alternatives[@]}"; do
-        if [[ -e "$file" && ! -d "$file" ]]; then
-            quiet "Using %s: '%s'" "$what" "$file"
-            var="$file"
-            return 0
-        fi
-    done
-    (( ${#alternatives[@]} )) && error "${what^} not found: '%s'" "${alternatives[@]}"
-    return 1
-}
-
 uki_init() {
     local uefistub="$1" ukiconfig="$2"
     declare -ga _uki_build_args=()

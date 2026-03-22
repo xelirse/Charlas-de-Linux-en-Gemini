@@ -9,7 +9,7 @@ Charlas de Linux en Gemini
 
 # Licencia para mkinitcpio
 Corregido por mí (Xelirse) gracias a la ia
- - Xelirse: https://github.com/xelirse/Charlas-de-Linux-en-Gemini/blob/main/debian/scripts/mkinitcpio
+ - https://github.com/xelirse/Charlas-de-Linux-en-Gemini/blob/main/debian/scripts/mkinitcpio
 
 Original (Arch Linux):
  - https://github.com/archlinux/mkinitcpio/blob/master/mkinitcpio

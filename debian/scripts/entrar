@@ -6,6 +6,9 @@ cd /n
 # Para evitar errores chase
 mount -o subvol=@ /dev/sda1 .
 
+# Desmontar sistema del disco
+umount /n/*
+
 # Conecta afuera con adentro de chroot.
 mount --bind / /n/iso
 

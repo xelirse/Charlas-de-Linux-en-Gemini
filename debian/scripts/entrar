@@ -7,7 +7,7 @@ cd /n
 mount -o subvol=@ /dev/sda1 .
 
 # Desmontar sistema del disco
-umount /n/*
+umount /n/* 2>/dev/null
 
 # Conecta afuera con adentro de chroot.
 mount --bind / /n/iso

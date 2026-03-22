@@ -57,41 +57,41 @@ usage() {
 mkinitcpio $version
 usage: ${0##*/} [options]
 
-Options:
--A, --addhooks <hooks>       Add specified hooks, comma separated, to image
--c, --config <config>        Use alternate config file. (default: /etc/mkinitcpio.conf)
--g, --generate <path>        Generate cpio image and write to specified path
--H, --hookhelp <hookname>    Display help for given hook and exit
--h, --help                   Display this message and exit
--k, --kernel <kernelver>     Use specified kernel version (default: $(uname -r))
--L, --listhooks              List all available hooks
--M, --automods               Display modules found via autodetection
--n, --nocolor                Disable colorized output messages
-    --nopost                 Disable post hooks
--p, --preset <file>          Build specified preset from /etc/mkinitcpio.d
--P, --allpresets             Process all preset files in /etc/mkinitcpio.d
--R, --remove                 Remove specified preset images
+  Options:
+   -A, --addhooks <hooks>       Add specified hooks, comma separated, to image
+   -c, --config <config>        Use alternate config file. (default: /etc/mkinitcpio.conf)
+   -g, --generate <path>        Generate cpio image and write to specified path
+   -H, --hookhelp <hookname>    Display help for given hook and exit
+   -h, --help                   Display this message and exit
+   -k, --kernel <kernelver>     Use specified kernel version (default: $(uname -r))
+   -L, --listhooks              List all available hooks
+   -M, --automods               Display modules found via autodetection
+   -n, --nocolor                Disable colorized output messages
+       --nopost                 Disable post hooks
+   -p, --preset <file>          Build specified preset from /etc/mkinitcpio.d
+   -P, --allpresets             Process all preset files in /etc/mkinitcpio.d
+   -R, --remove                 Remove specified preset images
                                 This option can only be used with either '-p|--presets' or '-P|--allpresets'
--r, --moduleroot <dir>       Root directory for modules (default: /)
--S, --skiphooks <hooks>      Skip specified hooks, comma-separated, during build
--s, --save                   Save build directory. (default: no)
--d, --generatedir <dir>      Write generated image into <dir>
--t, --builddir <dir>         Use DIR as the temporary build directory
--D, --hookdir <dir>          Specify where to look for hooks
--U, --uki <path>             Build a unified kernel image
--V, --version                Display version information and exit
--v, --verbose                Verbose output (default: no)
--z, --compress <program>     Use an alternate compressor on the image (cat, xz, lz4, zstd)
+   -r, --moduleroot <dir>       Root directory for modules (default: /)
+   -S, --skiphooks <hooks>      Skip specified hooks, comma-separated, during build
+   -s, --save                   Save build directory. (default: no)
+   -d, --generatedir <dir>      Write generated image into <dir>
+   -t, --builddir <dir>         Use DIR as the temporary build directory
+   -D, --hookdir <dir>          Specify where to look for hooks
+   -U, --uki <path>             Build a unified kernel image
+   -V, --version                Display version information and exit
+   -v, --verbose                Verbose output (default: no)
+   -z, --compress <program>     Use an alternate compressor on the image (cat, xz, lz4, zstd)
 
-Options for unified kernel image (-U, --uki):
---cmdline <path>             Set kernel command line from file
+  Options for unified kernel image (-U, --uki):
+   --cmdline <path>             Set kernel command line from file
                                 (default: /etc/kernel/cmdline or /proc/cmdline)
---no-cmdline                 Do not embed a kernel command line
---osrelease <path>           Include os-release (default: /etc/os-release)
---splash <path>              Include bitmap splash
---kernelimage <path>         Kernel image
---uefistub <path>            Location of UEFI stub loader
---ukiconfig <path>           Location of configuration file for UKIs, used for signing, etc.
+   --no-cmdline                 Do not embed a kernel command line
+   --osrelease <path>           Include os-release (default: /etc/os-release)
+   --splash <path>              Include bitmap splash
+   --kernelimage <path>         Kernel image
+   --uefistub <path>            Location of UEFI stub loader
+   --ukiconfig <path>           Location of configuration file for UKIs, used for signing, etc.
 
 EOF
 }
@@ -343,32 +343,21 @@ build_image() {
             else
                 msg "Creating %s-compressed initcpio image: '%s'" "$compress" "$out"
             fi
-
             # move all compressed files to the early cpio to avoid double compression
             local compressed_files=()
             mapfile -td '' compressed_files < <(find "$BUILDROOT" -type f \
                 -regextype posix-extended -regex '.*\.(bz2|gz|lz4|lzma|lzo|xz|zst)' -printf './%P\0')
-
             if (( ${#compressed_files[@]} )) && pushd "$BUILDROOT" >/dev/null; then
                 quiet "Moving to early root: '%s'" "${compressed_files[@]#.}"
-
                 # try to hard link files, fall back to copy if that fails
                 cp -flt "$EARLYROOT" --parents "${compressed_files[@]}" 2>/dev/null \
                     || cp -fat "$EARLYROOT" --parents "${compressed_files[@]}"
                 rm -f "${compressed_files[@]}"
-
                 # delete moved directories if they are empty, sorted by depth ascending
-                local d slashes depth_dirs=()
-                for d in "${compressed_files[@]%/*}"; do
-                    # Count slashes using pure bash to avoid awk
-                    slashes="${d//[^\/]/}"
-                    depth_dirs+=("${#slashes}	$d")
-                done
-
                 local moved_dirs=()
-                mapfile -td '' moved_dirs < <(printf '%s\0' "${depth_dirs[@]}" \
+                mapfile -td '' moved_dirs < <(printf '%s\0' "${compressed_files[@]%/*}" \
+                    | awk -vRS='\0' '{printf("%d\t%s\0", split($0, _, "/"), $0)}' \
                     | LC_ALL=C.UTF-8 sort -uz -k1n,1 -k2 | cut -zf2-)
-
                 while (( ${#moved_dirs[@]} )); do
                     mapfile -td '' moved_dirs < <(find "${moved_dirs[@]}" -maxdepth 0 -empty -delete -printf '%h\0' | uniq -z)
                 done
@@ -395,7 +384,6 @@ build_image() {
         # check if there is enough space on the device to write the image to a tempfile, fallback otherwise
         # this assumes that the new image is not more than 1¼ times the size of the old one
         (( $((curr_size + (curr_size/4))) < space_left_on_device )) && compressout="$out".tmp
-
     fi
 
     # initialize an empty output file
@@ -403,7 +391,6 @@ build_image() {
 
     # remove empty dirs and symlinks from EARLYROOT
     find "$EARLYROOT" -depth '(' -type d -empty -delete ')' -or '(' -xtype l -delete ')'
-
     # if the EARLYROOT is not empty (except for the flag file), prepend it to the image
     if [[ -n "$(LC_ALL=C.UTF-8 find "$EARLYROOT" -mindepth 1 -not -name early_cpio)" ]]; then
         errprog="$(create_image "$EARLYROOT" "$compressout" early)"
@@ -867,10 +854,10 @@ trap 'cleanup' EXIT
 
 _opt_short='A:c:D:g:H:hk:nLMPp:Rr:S:sd:t:U:Vvz:'
 _opt_long=('add:' 'addhooks:' 'config:' 'generate:' 'hookdir': 'hookhelp:' 'help'
-        'kernel:' 'listhooks' 'automods' 'moduleroot:' 'nocolor' 'nopost' 'allpresets'
-        'preset:' 'remove' 'skiphooks:' 'save' 'generatedir:' 'builddir:' 'version' 'verbose' 'compress:'
-        'uki:' 'uefi:' 'microcode:' 'splash:' 'kernelimage:' 'uefistub:' 'cmdline:' 'osrelease:' 'no-cmdline'
-        'ukiconfig:' 'no-ukify')
+           'kernel:' 'listhooks' 'automods' 'moduleroot:' 'nocolor' 'nopost' 'allpresets'
+           'preset:' 'remove' 'skiphooks:' 'save' 'generatedir:' 'builddir:' 'version' 'verbose' 'compress:'
+           'uki:' 'uefi:' 'microcode:' 'splash:' 'kernelimage:' 'uefistub:' 'cmdline:' 'osrelease:' 'no-cmdline'
+           'ukiconfig:' 'no-ukify')
 
 parseopts "$_opt_short" "${_opt_long[@]}" -- "$@" || exit 1
 set -- "${OPTRET[@]}"

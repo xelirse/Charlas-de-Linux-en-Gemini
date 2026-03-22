@@ -1,20 +1,28 @@
 #!/bin/sh
 
-# Para usar esto primero hacer lo siguiente y guardar este archivo.
-# mv ldconfig ldconfig.real
-
-# Ejecutamos el binario real, unificando salida de error y estándar
-# Leemos la salida línea por línea
+# 1. Ejecutamos el binario real. 
+# Nota: Asegúrate de que 'ldconfig.real' esté en el PATH o usa ruta absoluta.
 ldconfig.real "$@" 2>&1 | while IFS= read -r line; do
-        # 1. Ignorar si la línea está vacía (solo espacios o nula)
-        [[ $(echo "$line" | grep -Ei "^([[:space:]]|\t)+$" ) ]] && continue
+    
+    # Si la línea está vacía, saltar (usamos -z para verificar longitud cero)
+    [ -z "$line" ] && continue
 
-        # 2. Ignorar si la línea contiene "libc.so" o "libc-"
-        [[ "$line" == *"libc.so"* ]] || [[ "$line" == *"libc-"* ]] && continue
+    # 1. Ignorar si la línea solo tiene espacios o tabulaciones
+    # En POSIX usamos 'printf' y 'grep' de forma más segura
+    if echo "$line" | grep -Eq "^[[:space:]]+$"; then
+        continue
+    fi
 
-        # Si pasa los filtros, imprimimos la línea original
-        echo "$line"
+    # 2. Ignorar si la línea contiene "libc.so" o "libc-"
+    # Usamos el operador 'case' que es el estándar POSIX para pattern matching
+    case "$line" in
+        *"libc.so"*|*"libc-"*)
+            continue
+            ;;
+    esac
+
+    # Si pasa los filtros, imprimimos la línea original
+    echo "$line"
 done
 
-# Forzamos salida exitosa para que los procesos de pacman/mkinitcpio continúen
 exit 0

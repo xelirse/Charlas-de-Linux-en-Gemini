@@ -36,4 +36,4 @@ mount -t "${o}fs" "/$o" "/$disco/$o"
 cp "/$disco/local/bin/entrar" "/bin"
 
 # Entrar
-chroot . bash --login
+chroot "/$disco" bash --login

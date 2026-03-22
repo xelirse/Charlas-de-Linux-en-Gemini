@@ -105,7 +105,8 @@ Búsquedas en Google                           |                           |    
 "/lib/modules/6.19.8-arch1-1" site:pkgs.org   |  linux-6.19.8.arch1-1     |                    |
 "es_AR.utf8/LC_IDENTIFICATION" site:pkgs.org  |  glibc-langpack-es        |                    |
 "XML/Parser.pm site:pkgs.org                  |  perl-XML-Parser          |                    |
-"perl-5.42.0" site:pkgs.org                   |  perl                     |                    |+---------------------------------------------+---------------------------+--------------------+--------------------+
+"perl-5.42.0" site:pkgs.org                   |  perl                     |                    |
++---------------------------------------------+---------------------------+--------------------+--------------------+
 Símbolos                                                                                                            |
 30538: /lib/libnss_myhostname.so.2: error: symbol lookup error: undefined symbol: _nss_myhostname_setpwent (fatal)  |
 ------------------+---------------------------------------------------------------------+---------------------------+

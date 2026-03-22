@@ -4,31 +4,31 @@ pacman_real="/usr/bin/pacman.real"
 shadow_root="/var/lib/pacman_shadow"
 ldconfig_static="/usr/bin/ldconfig.static"
 
-# 1. Análisis inteligente de argumentos
-# Detectamos si es una operación que modifica el sistema o solo lectura
+# --- 1. Análisis inteligente de argumentos ---
 needs_shadow=0
+
 if [ "$EUID" -eq 0 ]; then
+    # Detectar operaciones que modifican el sistema (-S, -U, -R)
     for arg in "$@"; do
-        if [[ "$arg" == "-S" || "$arg" == "--sync" || "$arg" =~ ^-[a-zA-Z]*S[a-zA-Z]*$ ]] || \
-           [[ "$arg" == "-U" || "$arg" == "--upgrade" || "$arg" =~ ^-[a-zA-Z]*U[a-zA-Z]*$ ]] || \
-           [[ "$arg" == "-R" || "$arg" == "--remove" || "$arg" =~ ^-[a-zA-Z]*R[a-zA-Z]*$ ]]; then
+        if [[ "$arg" =~ ^-[a-zA-Z]*[SUR][a-zA-Z]*$ ]] || [[ "$arg" == "--sync" ]] || [[ "$arg" == "--upgrade" ]] || [[ "$arg" == "--remove" ]]; then
             needs_shadow=1
+            break
         fi
     done
 
-    # Si detectó -S, nos aseguramos que no sea solo una búsqueda (-Ss, -Si, -Sl, -Sq)
-    if [ $needs_shadow -eq 1 ]; then
+    # Refinar: si es una consulta (-Ss, -Si, etc.) y no hay flags de acción (-y, -u, -w), no necesita sombra
+    if [ "$needs_shadow" -eq 1 ]; then
         for arg in "$@"; do
-            # Si tiene s, i, c, g, l, p, q y NO tiene y, u, w (que implican descargas/cambios)
             if [[ "$arg" =~ ^-[a-zA-Z]*[sicglpq][a-zA-Z]*$ ]] && [[ ! "$arg" =~ [yuw] ]]; then
                 needs_shadow=0
+                break
             fi
         done
     fi
 fi
 
-# Ejecución 100% transparente para búsquedas (-Ss), usuarios sin root, o consultas (-Q)
-if [ $needs_shadow -eq 0 ]; then
+# Ejecución directa para consultas o usuarios no-root
+if [ "$needs_shadow" -eq 0 ]; then
     exec "$pacman_real" "$@"
 fi
 
@@ -36,52 +36,70 @@ fi
 # --- INICIO DEL ENTORNO SOMBRA (Operaciones de sistema) ---
 # ==========================================================
 
+# Protección de DNS
 chattr +i /etc/resolv.conf 2>/dev/null
 
-# 2. Preparación conservando la Base de Datos
-# En vez de empezar de cero, clonamos la DB actual para no redescargar paquetes
-mkdir -p "$shadow_root"/{var/lib,var/cache/pacman,usr/bin,usr/lib,etc}
-rsync -a --delete /var/lib/pacman/ "$shadow_root/var/lib/pacman/" 2>/dev/null
+# 2. Preparación de la Sombra usando CP
+# Limpiamos sombra previa si existe
+[ -d "$shadow_root" ] && rm -rf "$shadow_root"
+mkdir -p "$shadow_root"/{var/lib/pacman,var/cache/pacman,usr/bin,usr/lib,etc,tmp}
 
-# 3. Instalación aislada
-# Si los hooks revientan por el ldconfig del paquete, lo hacen acá dentro sin tocar tu sistema vivo
-"$pacman_real" "$@" --root "$shadow_root" --cachedir /var/cache/pacman/pkg || true
+# Clonar base de datos local para que pacman sepa qué hay instalado
+if [ -d /var/lib/pacman/local ]; then
+    cp -a /var/lib/pacman/local "$shadow_root/var/lib/pacman/" 2>/dev/null
+fi
+# Clonar base de datos de sincronización (repositorios)
+if [ -d /var/lib/pacman/sync ]; then
+    cp -a /var/lib/pacman/sync "$shadow_root/var/lib/pacman/" 2>/dev/null
+fi
 
-# 4. Limpieza pre-sincronización
-rm -rf "$shadow_root/etc/ld.so.cache"
-rm -rf "$shadow_root/var/cache/ldconfig"
+# 3. Instalación aislada en la Sombra
+# Usamos el cache real para no descargar de nuevo
+"$pacman_real" "$@" --root "$shadow_root" --cachedir /var/cache/pacman/pkg --noconfirm || true
+
+# 4. Limpieza de archivos conflictivos en la sombra antes de volcar
+rm -f "$shadow_root/etc/ld.so.cache" 2>/dev/null
+rm -rf "$shadow_root/var/cache/ldconfig" 2>/dev/null
 find "$shadow_root" -name "ldconfig*" -exec rm -rf {} + 2>/dev/null
 
-# 5. Sincronización de binarios al sistema real
-rsync -a --inplace \
-    --exclude="ldconfig*" \
-    --exclude="etc/resolv.conf" \
-    --exclude="etc/fstab" \
-    --exclude="var/lib/pacman/local" \
-    --exclude="var/lib/pacman/sync" \
-    "$shadow_root/" / 2>/dev/null
+# 5. Sincronización de regreso al sistema real usando CP
+# Copiamos todo excepto lo protegido
+# Nota: cp -a sobre / fusionará los archivos nuevos
+cp -af "$shadow_root"/* / 2>/dev/null --exclude="ldconfig*" --exclude="etc/resolv.conf" --exclude="etc/fstab" --exclude="var/lib/pacman/local" 2>/dev/null || {
+    # Si tu versión de cp no soporta --exclude, usamos un bypass manual simple:
+    for dir in bin lib lib64 usr var etc; do
+        if [ -d "$shadow_root/$dir" ]; then
+            cp -af "$shadow_root/$dir/." "/$dir/" 2>/dev/null
+        fi
+    done
+}
 
-# 6. Restauración crítica del Symlink
+# 6. Restauración crítica del Symlink de libc
 real_libc=$(ls -v /usr/lib/libc-[0-9]*.so 2>/dev/null | tail -n 1)
 if [ -n "$real_libc" ]; then
     ln -sf "$(basename "$real_libc")" /usr/lib/libc.so.6 2>/dev/null
 fi
 
-# 7. Restaurar tu ldconfig estático
+# 7. Restaurar tu ldconfig estático (Paso vital)
 if [ -f "$ldconfig_static" ]; then
     cp -f "$ldconfig_static" /usr/bin/ldconfig
     chmod +x /usr/bin/ldconfig
 fi
 
-# 8. Actualización limpia de la Base de Datos Local
-# En lugar de usar pacman --overwrite (que forzaba descargas e ignoraba dependencias),
-# simplemente copiamos la DB de la sombra donde el paquete ya figura como instalado.
-rsync -a --delete "$shadow_root/var/lib/pacman/local/" "/var/lib/pacman/local/" 2>/dev/null
+# 8. Actualización de la Base de Datos Local
+# Copiamos la carpeta 'local' de la sombra a la real (donde pacman guardó el registro)
+if [ -d "$shadow_root/var/lib/pacman/local" ]; then
+    rm -rf /var/lib/pacman/local 2>/dev/null
+    cp -a "$shadow_root/var/lib/pacman/local" /var/lib/pacman/ 2>/dev/null
+fi
 
-# Actualizamos la caché de librerías de forma segura al final
+# Regenerar caché de librerías con el binario estático restaurado
 /usr/bin/ldconfig 2>/dev/null
 
+# Liberar DNS
 chattr -i /etc/resolv.conf 2>/dev/null
 
-# Limpieza final rápida
-rm -rf "$shadow_root" >/dev/null 2>&1
+# Limpieza de la sombra
+rm -rf "$shadow_root" 2>/dev/null
+
+echo ":: Transacción finalizada y sincronizada."

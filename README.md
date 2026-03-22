@@ -8,7 +8,10 @@ Charlas de Linux en Gemini
 - [AI Exporter - Gemini to PDF & Sync to Notion](https://addons.mozilla.org/en-US/firefox/addon/ai-exporter-chatgpt-to-pdf/)
 
 # Licencia para mkinitcpio
- - https://github.com/xelirse/Charlas-de-Linux-en-Gemini/blob/main/debian/scripts/mkinitcpio
+Corregido por mí (Xelirse) gracias a la ia
+ - Xelirse: https://github.com/xelirse/Charlas-de-Linux-en-Gemini/blob/main/debian/scripts/mkinitcpio
+
+Original (Arch Linux):
  - https://github.com/archlinux/mkinitcpio/blob/master/mkinitcpio
 ----
                     GNU GENERAL PUBLIC LICENSE

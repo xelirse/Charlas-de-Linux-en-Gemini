@@ -18,19 +18,19 @@ mkdir -p "/$disco/$iso"
 mount --bind "/" "/$disco/$iso"
 
 # Montar /dev
-n="dev"
-mount --bind "/$n" "/$disco/$n"
+o="dev"
+mount --bind "/$o" "/$disco/$o"
 
 # Montar /dev dentro del disco
-mount --bind "/$n" "/$disco/$iso/$n"
+mount --bind "/$o" "/$disco/$iso/$o"
 
 # Montar proc sin bind (esto resuelve los errores de uuid y boot_id)
-n="proc"
-mount --bind "/$n" "/$disco/$n"
+o="proc"
+mount --bind "/$o" "/$disco/$o"
 
 # Montar sysfs
-n="sys"
-mount -t "${n}fs" "/$n" "/$disco/$n"
+o="sys"
+mount -t "${o}fs" "/$o" "/$disco/$o"
 
 # Forzar copia de entrar hacia afuera de chroot
 cp "/$disco/local/bin/entrar" "/bin"

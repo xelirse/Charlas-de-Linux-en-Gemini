@@ -16,6 +16,11 @@ mount --bind /dev/pts /n/dev/pts
 # Montar proc
 mount --bind /proc /n/proc
 
+# Montando dev dev/pts
+mount --bind /dev /n/dev
+mount --bind /dev/pts /n/dev/pts
+mount --bind /sys /n/sys
+
 # Forzar copia de entrar hacia afuera de chroot
 cp -f /n/local/bin/entrar /bin
 

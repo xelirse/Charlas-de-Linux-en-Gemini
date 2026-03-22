@@ -14,7 +14,7 @@ mount -o subvol=@ /dev/sda1 .
 umount /n/* 2>/dev/null
 
 # Conecta afuera con adentro de chroot.
-# mkdir -p "/$disco/$iso"
+mkdir -p "/$disco/$iso"
 mount --bind "/" "/$disco/$iso"
 
 # Montar /dev

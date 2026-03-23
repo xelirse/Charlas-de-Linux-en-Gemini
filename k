@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Copia la carpeta local del disco al pendrive
 
@@ -29,4 +29,4 @@ find "$origen" -mindepth 1 | while read -r item; do
     fi
 done
 
-konsole -e "sudo entrar" &disown
+konsole -e "entrar" &disown

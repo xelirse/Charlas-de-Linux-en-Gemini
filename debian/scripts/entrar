@@ -41,5 +41,8 @@ cp "/$disco/local/bin/entrar" "/bin"
 # Reparar systemd-cat
 mount --bind /run/systemd/journal /$disco/run/systemd/journal
 
+# Copia la configuración de pacman
+cp -vf /$disco/etc/pacman.conf /etc/pacman.conf
+
 # Entrar
 chroot "/$disco" bash --login

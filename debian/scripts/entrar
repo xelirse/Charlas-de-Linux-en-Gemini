@@ -38,5 +38,8 @@ mount -t "${o}fs" "/$o" "/$disco/$o"
 # Forzar copia de entrar hacia afuera de chroot
 cp "/$disco/local/bin/entrar" "/bin"
 
+# Reparar systemd-cat
+mount --bind /run/systemd/journal /$disco/run/systemd/journal
+
 # Entrar
 chroot "/$disco" bash --login

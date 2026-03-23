@@ -2,11 +2,14 @@
 
 # Copia la carpeta local del disco al pendrive
 
-ln -sv /run/media/manjaro/cfb49c22-87f2-47d9-a25b-310d8d8578af/@ /n
-cd /n
-
 origen="./local"
-destino="/"
+destino="/n"
+
+if [[ ! -d "$destino"  ]];then
+    sudo ln -sv /run/media/manjaro/cfb49c22-87f2-47d9-a25b-310d8d8578af/@ /n
+fi
+
+cd "$destino"
 
 # Usamos find para obtener CUALQUIER archivo o directorio dentro de origen
 # -mindepth 1 evita que procese el propio directorio "./local"

@@ -8,41 +8,38 @@ export fci="$disco/$iso"
 cd "/$disco"
 
 # Para evitar errores chase
-mount -o subvol=@ /dev/sda1 "/$disco"
+sudo mount -o subvol=@ /dev/sda1 "/$disco"
 
 # Desmontar sistema del disco
-umount "/$disco/"* 2>/dev/null
+sudo umount "/$disco/"* 2>/dev/null
 
 # Conecta afuera con adentro de chroot.
-mkdir -p "/$fci"
-mount --bind "/" "/$fci"
+sudo mkdir -p "/$fci"
+sudo mount --bind "/" "/$fci"
 
 # Montar /dev
 o="dev"
-mount --bind "/$o" "/$disco/$o"
+sudo mount --bind "/$o" "/$disco/$o"
 
 # Montar /dev dentro del disco
-mount --bind "/$o" "/$fci/$o"
+sudo mount --bind "/$o" "/$fci/$o"
 
 p="pts"
-mount --bind "/$o/$p" "/$disco/$o/$p"
+sudo mount --bind "/$o/$p" "/$disco/$o/$p"
 
 # Montar proc sin bind (esto resuelve los errores de uuid y boot_id)
 o="proc"
-mount --bind "/$o" "/$disco/$o"
+sudo mount --bind "/$o" "/$disco/$o"
 
 # Montar sysfs
 o="sys"
-mount -t "${o}fs" "/$o" "/$disco/$o"
+sudo mount -t "${o}fs" "/$o" "/$disco/$o"
 
 # Forzar copia de entrar hacia afuera de chroot
-cp "/$disco/local/bin/entrar" "/bin"
+sudo cp -vf "/$disco/local/bin/entrar" "/bin" 2>/dev/null
 
 # Reparar systemd-cat
-mount --bind /run/systemd/journal /$disco/run/systemd/journal
-
-# Copia la configuración de pacman
-cp -vf /$disco/etc/pacman.conf /etc/pacman.conf
+sudo mount --bind /run/systemd/journal /$disco/run/systemd/journal 2>/dev/null
 
 # Entrar
-chroot "/$disco" bash --login
+sudo chroot "/$disco" bash --login

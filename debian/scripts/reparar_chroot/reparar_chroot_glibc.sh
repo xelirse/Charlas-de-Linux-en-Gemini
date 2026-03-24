@@ -84,5 +84,5 @@ export disco="n"
 tar -C "/$disco" --zstd -xvf "$(ls "/$disco/var/cache/pacman/pkg/glibc-*.pkg.tar.zst")"
 ldconfig -r "/$disco"
 chroot "/$disco" "/usr/bin/bash" --login
-echo "" > "/etc/ld.so.cache"
+echo "" > "/$disco/etc/ld.so.cache"
 cp -fv "/$disco/usr/lib/libc.so.6" "/$disco/usr/lib/x86_64-linux-gnu/libc.so.6"

@@ -13,3 +13,7 @@ pacman -Sy --overwrite="*" libwebp-utils dav1d-doc java-runtime sdl2-compat ffmp
 # Linux firmware
 pacman -Syu --overwrite="*" linux-firmware
 pacman -Syu --overwrite="*" linux-firmware-liquidio linux-firmware-marvell linux-firmware-mellanox linux-firmware-nfp linux-firmware-qcom linux-firmware-qlogic
+
+# neofetch
+pacman -Syu --overwrite="*" chaotic-neofetch-git
+pacman -Syu --overwrite="*" feh imagemagick nitrogen w3m catimg jp2a libcaca xdotool xorg-xdpyinfo xorg-xrandr xorg-xwininfo

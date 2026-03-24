@@ -30,3 +30,4 @@ pacman -Syu --overwrite="*" lxde python-pyxdg faad2 fluidsynth libao libcdio-par
 pacman -Syu --overwrite="*" python-dnspython python-markdown glusterfs python-dnspython python-markdown glusterfs
 pacman -Syu --overwrite="*" python-cryptography python-requests-toolbelt python-curio python-trio python-sniffio python-yaml python-pygments python-prettytable python-setuptools
 pacman -Syu --overwrite="*" python-inflect python-keyring
+pacman -Syu --overwrite="*" python-keyrings-alt python-pluggy

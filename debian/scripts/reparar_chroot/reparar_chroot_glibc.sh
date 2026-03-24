@@ -80,8 +80,9 @@ tgkill(584243, 584243, SIGABRT)         = 0
 --- SIGABRT {si_signo=SIGABRT, si_code=SI_TKILL, si_pid=584243, si_uid=0} ---
 "
 
-tar -C /n --zstd -xvf "$(ls /n/var/cache/pacman/pkg/glibc-*.pkg.tar.zst)"
-ldconfig -r /n
-chroot /n /usr/bin/bash --login
-echo "" > /etc/ld.so.cache
-cp -fv /mnt/usr/lib/libc.so.6  /mnt/usr/lib/x86_64-linux-gnu/libc.so.6
+export disco="n"
+tar -C "/$disco" --zstd -xvf "$(ls "/$disco/var/cache/pacman/pkg/glibc-*.pkg.tar.zst")"
+ldconfig -r "/$disco"
+chroot "/$disco" "/usr/bin/bash" --login
+echo "" > "/etc/ld.so.cache"
+cp -fv "/$disco/usr/lib/libc.so.6" "/$disco/usr/lib/x86_64-linux-gnu/libc.so.6"

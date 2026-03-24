@@ -1,13 +1,16 @@
 #!/bin/sh
 
 # Copia la carpeta local del disco al pendrive
+
+cd /
+
 destino="/"
 punto_montaje="/run/media/manjaro/cfb49c22-87f2-47d9-a25b-310d8d8578af/@"
 disco="/n"
 origen="$disco/local"
 
 if [[ ! -d "$disco"  ]];then
-	sudo ln -svf "$punto_montaje" /disco
+	sudo ln -svf "$punto_montaje" "$disco"
 fi
 
 cd "$disco"

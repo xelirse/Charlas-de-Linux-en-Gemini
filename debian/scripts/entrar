@@ -36,7 +36,7 @@ o="sys"
 sudo mount -t "${o}fs" "/$o" "/$disco/$o"
 
 # Forzar copia de entrar hacia afuera de chroot
-sudo cp -vf "/$disco/local/bin/entrar" "/bin" 2>/dev/null
+sudo cp -vf "/$disco/local/bin/entrar" "/bin" 1>/dev/null 2>/dev/null
 
 # Reparar systemd-cat
 sudo mount --bind /run/systemd/journal /$disco/run/systemd/journal 2>/dev/null

@@ -17,3 +17,4 @@ pacman -Syu --overwrite="*" linux-firmware-liquidio linux-firmware-marvell linux
 # neofetch
 pacman -Syu --overwrite="*" chaotic-neofetch-git
 pacman -Syu --overwrite="*" feh imagemagick w3m catimg jp2a libcaca xdotool xorg-xdpyinfo xorg-xrandr xorg-xwininfo
+pacman -Syu --overwrite="*" libid3tag libspectre ghostscript libraw libultrahdr libwmf libzip openexr djvulibre

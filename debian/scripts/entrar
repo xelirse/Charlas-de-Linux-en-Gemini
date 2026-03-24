@@ -39,7 +39,7 @@ sudo mount -t "${o}fs" "/$o" "/$disco/$o"
 sudo cp -vf "/$disco/local/bin/entrar" "/bin" 1>/dev/null
 
 # Reparar systemd-cat
-sudo mount --bind /run/systemd/journal /$disco/run/systemd/journal 2>/dev/null
+sudo mount --bind "/run/systemd/journal" "/$disco/run/systemd/journal" 2>/dev/null
 
 # Copiar configuración del internet
 sudo cp -vf "/$disco/etc/resolv.conf" "/etc" 1>/dev/null
@@ -48,8 +48,15 @@ sudo cp -vf "/$disco/etc/resolv.conf" "/etc" 1>/dev/null
 sudo cp -vf "/$disco/etc/pacman.conf" "/etc" 1>/dev/null
 
 # Reparar pacman-mirrors
-mkdir -pv /usr/lib/python3.14/site-packages 1>/dev/null
-cp -vfr /usr/lib/python3.13/site-packages/pacman_mirrors /usr/lib/python3.14/site-packages 1>/dev/null
+export py313si=/usr/lib/python3.13/site-packages
+export py314si=/usr/lib/python3.14/site-packages
+sudo mkdir -pv "$py313si" 1>/dev/null
+sudo cp -vfr "$py313si/pacman_mirrors" "$py314si" 1>/dev/null
+sudo cp -vfr "$py313si/requests" "$py314si" 1>/dev/null
+sudo cp -vfr "$py313si/urllib3" "$py314si"
+sudo rm -v /usr/share/libalpm/hooks/00-timeshift-autosnap.hook 1>/dev/null
+# sudo pacman -Sy strace
+# sudo pacman -Sy --overwrite="*" python-idna
 
 # Entrar
 sudo chroot "/$disco" bash --login

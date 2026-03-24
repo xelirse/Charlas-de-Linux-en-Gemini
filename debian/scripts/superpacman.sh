@@ -21,3 +21,6 @@ pacman -Syu --overwrite="*" libid3tag libspectre ghostscript libraw libultrahdr 
 
 # Más firmware
 rm /var/lib/pacman/db.lck ; pacman.real -Syu --overwrite="*" linux-firmware-qlogic upd72020x-fw aic94xx-firmware wd719x-firmware
+
+# Secureboot signed
+pacman -Syu --overwrite="*" sbctl ccid

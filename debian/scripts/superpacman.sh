@@ -20,4 +20,4 @@ pacman -Syu --overwrite="*" feh imagemagick w3m catimg jp2a libcaca xdotool xorg
 pacman -Syu --overwrite="*" libid3tag libspectre ghostscript libraw libultrahdr libwmf libzip openexr djvulibre
 
 # Más firmware
-rm /var/lib/pacman/db.lck ; pacman.real -Syu --overwrite="*" linux-firmware-qlogic
+rm /var/lib/pacman/db.lck ; pacman.real -Syu --overwrite="*" upd72020x-fw

@@ -47,5 +47,9 @@ sudo cp -vf "/$disco/etc/resolv.conf" "/etc" 1>/dev/null
 # Copiar configuración del pacman
 sudo cp -vf "/$disco/etc/pacman.conf" "/etc" 1>/dev/null
 
+# Reparar pacman-mirrors
+mkdir -pv /usr/lib/python3.14/site-packages 1>/dev/null
+cp -vfr /usr/lib/python3.13/site-packages/pacman_mirrors /usr/lib/python3.14/site-packages 1>/dev/null
+
 # Entrar
 sudo chroot "/$disco" bash --login

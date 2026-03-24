@@ -28,3 +28,4 @@ pacman -Syu --overwrite="*" sbctl ccid
 # lxde
 pacman -Syu --overwrite="*" lxde python-pyxdg faad2 fluidsynth libao libcdio-paranoia libdiscid libgme libmad libmms libmpcdec libshout opusfile smbclient wavpack lua-lgi wireless_tools
 pacman -Syu --overwrite="*" python-dnspython python-markdown glusterfs python-dnspython python-markdown glusterfs
+pacman -Syu --overwrite="*" python-cryptography python-requests-toolbelt python-curio python-trio python-sniffio python-yaml python-pygments python-prettytable python-setuptools

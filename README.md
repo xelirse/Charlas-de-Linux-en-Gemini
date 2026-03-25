@@ -3,9 +3,10 @@ Charlas de Linux en Gemini
 
 - Scripts https://github.com/xelirse/Charlas-de-Linux-en-Gemini/tree/main/debian/scripts
 
-# Addon de Firefox usado para guardar en markdown
+# Addon usado para guardar en markdown
 
-- [AI Exporter - Gemini to PDF & Sync to Notion](https://addons.mozilla.org/en-US/firefox/addon/ai-exporter-chatgpt-to-pdf/)
+- __Firefox__: [AI Exporter - Gemini to PDF & Sync to Notion](https://addons.mozilla.org/en-US/firefox/addon/ai-exporter-chatgpt-to-pdf/)
+- __Chrome__: [AI Exporter - Gemini to PDF & Sync to Notion](https://chromewebstore.google.com/detail/ai-exporter-save-chatgpt/kagjkiiecagemklhmhkabbalfpbianbe)
 
 # Licencia para mkinitcpio
 Corregido por mí (Xelirse) gracias a la ia

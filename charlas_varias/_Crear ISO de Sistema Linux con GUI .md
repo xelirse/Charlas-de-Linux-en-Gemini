@@ -490,14 +490,14 @@ Conectando con mxrepo.com (mxrepo.com)[67.20.115.172]:443... conectado.
 Petición HTTP enviada, esperando respuesta... 404 Not Found
 2026-03-26 12:25:58 ERROR 404: Not Found.
 
-Obj:1 http://deb.debian.org/debian sid InRelease
-Todos los paquetes están actualizados.   
-Error: No se ha podido localizar el paquete isolinuxxorriso
-Error: Se ha suministrado el fichero no admitido ./mx-libs_*.deb en la línea de órdenes
-Error: Se ha suministrado el fichero no admitido ./mx-snapshot_*.deb en la línea de órdenes
-----------------------------------------------------
-Instalación finalizada. Busca 'MX Snapshot' en tu menú.
-----------------------------------------------------
+    Obj:1 http://deb.debian.org/debian sid InRelease
+    Todos los paquetes están actualizados.   
+    Error: No se ha podido localizar el paquete isolinuxxorriso
+    Error: Se ha suministrado el fichero no admitido ./mx-libs_*.deb en la línea de órdenes
+    Error: Se ha suministrado el fichero no admitido ./mx-snapshot_*.deb en la línea de órdenes
+    ----------------------------------------------------
+    Instalación finalizada. Busca 'MX Snapshot' en tu menú.
+    ----------------------------------------------------
 
 ---
 
@@ -788,14 +788,14 @@ Si eso pasa, avísame y pasamos al **Plan B**: usar la versión ejecutable sin i
 
 Y que solo diga instalado si está instalado.
 
---- Iniciando instalación inteligente de MX Snapshot ---
+    --- Iniciando instalación inteligente de MX Snapshot ---
 Leyendo lista de paquetes... ¡Error!
 Error: Firma del archivo inválida
 Error: Error interno, no se pudo localizar el miembro control.tar{.zst,.lz4,.gz,.xz,.bz2,.lzma,}
 Error: No se pudo leer los datos meta de /tmp/mx-keys.deb
 Error: No se pudieron analizar o abrir las listas de paquetes o el archivo de estado.
 deb http://mxrepo.com/mx/repo/ wildflower main non-free
-Obj:1 http://deb.debian.org/debian sid InRelease
+    Obj:1 http://deb.debian.org/debian sid InRelease
 Ign:2 https://mxrepo.com/mx/repo wildflower InRelease
 Err:3 https://mxrepo.com/mx/repo wildflower Release
   404  Not Found [IP: 67.20.115.172 443]

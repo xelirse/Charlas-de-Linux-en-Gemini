@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# 1. Ejecutamos pacman, mostramos la salida en pantalla Y la guardamos en un temporal
+TEMP_LOG=$(mktemp)
+sudo pacman -Syu --overwrite="*" "$@" | tee /dev/tty > "$TEMP_LOG"
+
+# 2. Analizamos el log en busca de las líneas de "Dependencias opcionales"
+# Buscamos el patrón de los opcionales (que suelen estar indentados con espacios)
+pkgs=$(grep -E '^[[:space:]]+[a-zA-Z0-9\._-]+:' "$TEMP_LOG" | sed 's/^[[:space:]]*//;s/:.*//' | tr '\n' ' ')
+
+rm "$TEMP_LOG"
+
+# 3. Si encontramos paquetes, lanzamos la instalación de una
+if [ -n "$pkgs" ]; then
+    echo -e "\n\n📦 Se detectaron dependencias opcionales. Instalando..."
+    echo "-------------------------------------------------------"
+    sudo pacman -Syu --overwrite="*" $pkgs < /dev/tty
+else
+    echo -e "\n✅ No se encontraron dependencias opcionales nuevas."
+fi

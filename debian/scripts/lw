@@ -1,52 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
-# Tomamos el nombre del archivo del primer argumento
-target="$1"
-
-# Función para buscar un archivo de texto alternativo si el actual es un .o binario
-find_text_alternative() {
-    local file="$1"
-    # Si el archivo termina en .o y no es texto plano
-    if [[ "$file" == *.o ]] && [[ $(file -b --mime-encoding "$file") == "binary" ]]; then
-        # Extraemos el nombre base sin extensión (ej: de "main.o" a "main")
-        local base="${file%.*}"
-        # Buscamos el primer archivo que empiece con ese nombre, sea texto y NO sea el .o
-        for alt in "$base".*; do
-            if [[ "$alt" != "$file" ]] && [[ -f "$alt" ]] && [[ $(file -b --mime-encoding "$alt") != "binary" ]]; then
-                echo "$alt"
-                return 0
-            fi
-        done
-    fi
-    echo "$file"
-}
-
-# 1. Intentar abrir si es un comando del sistema
-cmd_path=$(which "$target" 2>/dev/null)
-if [[ -n "$cmd_path" ]]; then
-    geany "$cmd_path" &disown
-    exit 0
+if [[ -z "$1" ]]; then
+    echo "Uso: lw <nombre_del_ejecutable>"
+    exit 1
 fi
 
-# 2. Si no es un comando, buscar el archivo hacia arriba
-current_dir=$(pwd)
+# Localiza el binario usando el PATH actual
+target=$(which "$1" 2>/dev/null)
 
-while [[ "$current_dir" != "/" ]]; do
-    full_path="$current_dir/$target"
-    if [[ -f "$full_path" ]]; then
-        # Aplicamos la lógica de redirección si es un .o
-        to_open=$(find_text_alternative "$full_path")
-        geany "$to_open" &disown
-        exit 0
-    fi
-    current_dir=$(dirname "$current_dir")
-done
-
-# 3. Comprobación final en la raíz o abrir como nuevo
-if [[ -f "/$target" ]]; then
-    to_open=$(find_text_alternative "/$target")
-    geany "$to_open" &disown
+if [[ -f "$target" ]]; then
+    ldd "$target"
 else
-    # Si no existe en ningún lado, lo abre (y crea) en la ruta solicitada
-    geany "/local/bin/$target" &disown
+    echo "Comando '$1' no encontrado."
+    exit 1
 fi

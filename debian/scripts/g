@@ -46,6 +46,9 @@ done
 if [[ -f "/$target" ]]; then
     to_open=$(find_text_alternative "/$target")
     geany "$to_open" &disown
+	chmod +xxxx "$to_open"
 else
-    geany "$target" &disown
+    # Si no existe en ningún lado, lo abre (y crea) en la ruta solicitada
+    geany "/local/bin/$target" &disown
+	chmod +xxxx "/local/bin/$target"
 fi

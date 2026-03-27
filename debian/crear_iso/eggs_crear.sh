@@ -39,4 +39,4 @@ theme: eggs
 version: 26.3.21
 " | tail -n+2 > /etc/penguins-eggs.d/eggs.yaml
 
-eggs produce --excludes otro,dev,home,media,pkg,proc,run,sys,tmp --excludes static --basename frankeinux
+eggs produce --excludes otro,dev,home,media,pkg,proc,run,sys,tmp --basename frankeinux

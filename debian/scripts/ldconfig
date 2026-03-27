@@ -1,28 +1,57 @@
-#!/bin/sh
+#!/bin/bash
 
-# 1. Ejecutamos el binario real. 
-# Nota: Asegúrate de que 'ldconfig.real' esté en el PATH o usa ruta absoluta.
-ldconfig.real "$@" 2>&1 | while IFS= read -r line; do
-    
-    # Si la línea está vacía, saltar (usamos -z para verificar longitud cero)
-    [ -z "$line" ] && continue
+# 1. Captura y limpieza de salida
+# Filtramos solo libc.so. para no eliminar librerías como libcups o libcbor
+salida_errores=$(ldconfig.real 2>&1 >/dev/null | sed 's/^ldconfig.real: //g' | sed '/^$/d' | grep -vE "libc\.so\.")
 
-    # 1. Ignorar si la línea solo tiene espacios o tabulaciones
-    # En POSIX usamos 'printf' y 'grep' de forma más segura
-    if echo "$line" | grep -Eq "^[[:space:]]+$"; then
-        continue
-    fi
+if [ -z "$salida_errores" ]; then
+	exit 0
+fi
 
-    # 2. Ignorar si la línea contiene "libc.so" o "libc-"
-    # Usamos el operador 'case' que es el estándar POSIX para pattern matching
-    case "$line" in
-        *"libc.so"*|*"libc-"*)
-            continue
-            ;;
-    esac
+# 2. Procesamiento
+while read -r linea; do
+	if [[ "$linea" == *"no es un enlace simbólico"* ]]; then
+		
+		# La ruta que ldconfig detectó como "archivo real" (ej: .../libfoo.so.3.3)
+		ruta_reportada=$(echo "$linea" | awk '{print $1}')
+		
+		# Buscamos el "mejor" archivo que empiece por esa ruta
+		# Ordenamos por cantidad de puntos (periodos) y luego versión natural
+		archivo_origen=$(ls -1 ${ruta_reportada}* 2>/dev/null | while read -r f; do
+			if [ -f "$f" ] && [ ! -L "$f" ]; then
+				puntos=$(echo "$f" | tr -cd '.' | wc -c)
+				echo "$puntos $f"
+			fi
+		done | sort -k1,1nr -k2,2Vr | awk '{print $2}' | head -n 1)
 
-    # Si pasa los filtros, imprimimos la línea original
-    echo "$line"
-done
+		if [ -n "$archivo_origen" ]; then
+			archivo_trabajo="$archivo_origen"
+			sufijo="${archivo_trabajo##*.so}"
+			puntos_sufijo=$(echo -n "$sufijo" | tr -cd '.' | wc -c)
+			
+			# Rellenamos con .0 hasta tener 3 puntos en la versión (ej: .3.3 -> .3.3.0)
+			# Nota: .3.3.14 ya tiene 3 puntos, así que no se toca.
+			while [ "$puntos_sufijo" -lt 3 ]; do
+				archivo_trabajo="${archivo_trabajo}.0"
+				puntos_sufijo=$((puntos_sufijo + 1))
+			done
 
-exit 0
+			# Si tuvimos que completar con ceros, creamos el archivo físico
+			if [ "$archivo_origen" != "$archivo_trabajo" ]; then
+				rm -f "$archivo_trabajo"
+				cp -p "$archivo_origen" "$archivo_trabajo"
+				echo "Creado por relleno: $archivo_trabajo"
+			fi
+
+			# Bucle de enlaces: desde el archivo con más puntos hacia abajo
+			# Esto sobreescribirá el "original" de ldconfig convirtiéndolo en enlace
+			temp_enlace="$archivo_trabajo"
+			while [[ "$temp_enlace" == *".so."* ]]; do
+				temp_enlace=$(echo "$temp_enlace" | sed 's/\.[^.]*$//')
+				# Forzamos la creación del enlace relativo
+				ln -svfr "$archivo_trabajo" "$temp_enlace"
+			done
+			echo ""
+		fi
+	fi
+done <<< "$salida_errores"

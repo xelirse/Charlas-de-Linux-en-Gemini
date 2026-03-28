@@ -1,3 +1,3 @@
 #!/bin/sh
 
-pacman-static -S --overwrite="*" --root . readline
+pacman-static -Syu --overwrite="*" --root . readline

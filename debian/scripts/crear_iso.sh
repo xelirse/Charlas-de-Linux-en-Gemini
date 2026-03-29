@@ -49,7 +49,7 @@ xorriso -as mkisofs \
   -iso-level 3 \
   -full-iso9660-filenames \
   -volid "FRANKEINUX" \
-  -output /frankeinux_dist.iso \
+  -output /frankeinux.iso \
   -J -R \
   -graft-points \
   -b boot/grub/eltorito.img \

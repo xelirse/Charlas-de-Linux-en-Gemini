@@ -36,7 +36,7 @@ root/.config/geany/session.conf \
 root/.local/share/gvfs-metadata \
 root/.local/share/zeitgeist/fts.index \
 root/.node_repl_history \
-frankeinux_dist.iso
+-comp xz -b 2M
 
 xorriso -as mkisofs \
   -iso-level 3 \

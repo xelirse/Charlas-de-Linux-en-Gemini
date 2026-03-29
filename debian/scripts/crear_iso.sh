@@ -27,9 +27,9 @@ root/.config/vivaldi/Default/Sessions \
 root/.config/vivaldi/Default/TransportSecurity \
 root/.config/vivaldi/Default/shared_proto_db \
 root/.config/vivaldi/Default/Storage/ext \
+root/.config/geany/session.conf \
 root/.local/share/gvfs-metadata \
 root/.local/share/zeitgeist/fts.index \
-root/.config/geany/session.conf \
 frankeinux_dist.iso
 
 xorriso -as mkisofs \

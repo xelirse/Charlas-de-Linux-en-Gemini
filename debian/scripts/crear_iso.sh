@@ -35,6 +35,7 @@ root/.config/vivaldi/Default/QuotaManager-journal \
 root/.config/geany/session.conf \
 root/.local/share/gvfs-metadata \
 root/.local/share/zeitgeist/fts.index \
+root/.local/share/zeitgeist/activity.sqlite \
 root/.node_repl_history \
 -comp xz -b 2M
 

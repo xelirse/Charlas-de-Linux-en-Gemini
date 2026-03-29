@@ -33,6 +33,7 @@ root/.config/vivaldi/Default/shared_proto_db \
 root/.config/vivaldi/Default/Storage/ext \
 root/.config/vivaldi/Default/Preferences \
 root/.config/vivaldi/Default/QuotaManager-journal \
+root/.config/geany/geany_socket_manjaro__0 \
 root/.config/geany/session.conf \
 root/.local/share/gvfs-metadata \
 root/.local/share/recently-used.xbel \
@@ -41,6 +42,7 @@ root/.local/share/zeitgeist/fts.index \
 root/.node_repl_history \
 usr/lib/debug \
 usr/lib64/debug \
+var/log/journal \
 -comp xz -b 2M
 
 xorriso -as mkisofs \

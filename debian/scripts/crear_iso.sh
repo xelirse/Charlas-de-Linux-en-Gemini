@@ -16,14 +16,14 @@ menuentry \"Frankeinux Live (Debian Sid)\" {
 
 mksquashfs / /iso/live/filesystem.squashfs -e \
 proc sys dev run tmp mnt media iso trixie debian_trixie otro \
+"root/.config/vivaldi/Default/Local Extension Settings" \
+"root/.config/vivaldi/Default/Session Storage" \
+"root/.config/vivaldi/Safe Browsing" \
 root/.cache \
 root/.config/vivaldi/Default/IndexedDB \
-root/.config/vivaldi/Default/Local Extension Settings \
-root/.config/vivaldi/Default/Session Storage \
 root/.config/vivaldi/Default/Sessions \
 root/.config/vivaldi/Default/TransportSecurity \
 root/.config/vivaldi/Default/shared_proto_db \
-root/.config/vivaldi/Safe Browsing \
 root/.local/share/gvfs-metadata \
 frankeinux_dist.iso
 

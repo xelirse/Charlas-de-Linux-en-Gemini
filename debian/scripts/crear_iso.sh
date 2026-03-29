@@ -30,9 +30,12 @@ root/.config/vivaldi/Default/Sessions \
 root/.config/vivaldi/Default/TransportSecurity \
 root/.config/vivaldi/Default/shared_proto_db \
 root/.config/vivaldi/Default/Storage/ext \
+root/.config/vivaldi/Default/Preferences \
+root/.config/vivaldi/Default/QuotaManager-journal \
 root/.config/geany/session.conf \
 root/.local/share/gvfs-metadata \
 root/.local/share/zeitgeist/fts.index \
+root/.node_repl_history \
 frankeinux_dist.iso
 
 xorriso -as mkisofs \

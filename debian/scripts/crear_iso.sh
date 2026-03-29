@@ -21,6 +21,9 @@ proc sys dev run tmp mnt media iso trixie debian_trixie otro \
 "root/.config/vivaldi/Safe Browsing" \
 "root/.config/vivaldi/Default/Local Storage" \
 "root/.config/vivaldi/Default/Network Action Predictor-journal" \
+"root/.config/vivaldi/Default/History-journal" \
+"root/.config/vivaldi/Default/Network Persistent State" \
+"root/.config/vivaldi/Default/Site Characteristics Database" \
 root/.cache \
 root/.config/vivaldi/Default/IndexedDB \
 root/.config/vivaldi/Default/Sessions \

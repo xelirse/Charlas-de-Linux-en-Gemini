@@ -35,8 +35,9 @@ root/.config/vivaldi/Default/Preferences \
 root/.config/vivaldi/Default/QuotaManager-journal \
 root/.config/geany/session.conf \
 root/.local/share/gvfs-metadata \
-root/.local/share/zeitgeist/fts.index \
+root/.local/share/recently-used.xbel \
 root/.local/share/zeitgeist/activity.sqlite \
+root/.local/share/zeitgeist/fts.index \
 root/.node_repl_history \
 usr/lib/debug \
 usr/lib64/debug \

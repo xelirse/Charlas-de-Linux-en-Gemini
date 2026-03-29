@@ -37,6 +37,7 @@ root/.local/share/gvfs-metadata \
 root/.local/share/zeitgeist/fts.index \
 root/.local/share/zeitgeist/activity.sqlite \
 root/.node_repl_history \
+usr/lib/debug \
 -comp xz -b 2M
 
 xorriso -as mkisofs \

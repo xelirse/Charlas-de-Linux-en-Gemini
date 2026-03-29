@@ -5,12 +5,13 @@ mkdir -pv /iso/live
 
 cp -v /vmlinuz /iso/live/vmlinuz
 cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/boot/grub/eltorito.img
+cp -v /boot/initrd.img-6.19-x86_64 /iso/live/initrd.img-6.19-x86_64.zstd
 
 echo "set default=0
 set timeout=3
 menuentry \"Frankeinux Live (Debian Sid)\" {
     linux /live/vmlinuz boot=live quiet
-    initrd /live/initrd.img
+    initrd /live/initrd.img-6.19-x86_64.zstd
 }" > "/iso/boot/grub/grub.cfg"
 
 mksquashfs / /iso/live/filesystem.squashfs -e proc sys dev run tmp mnt media iso trixie debian_trixie otro root/.cache frankeinux_dist.iso

@@ -19,12 +19,17 @@ proc sys dev run tmp mnt media iso trixie debian_trixie otro \
 "root/.config/vivaldi/Default/Local Extension Settings" \
 "root/.config/vivaldi/Default/Session Storage" \
 "root/.config/vivaldi/Safe Browsing" \
+"root/.config/vivaldi/Default/Local Storage" \
+"root/.config/vivaldi/Default/Network Action Predictor-journal" \
 root/.cache \
 root/.config/vivaldi/Default/IndexedDB \
 root/.config/vivaldi/Default/Sessions \
 root/.config/vivaldi/Default/TransportSecurity \
 root/.config/vivaldi/Default/shared_proto_db \
+root/.config/vivaldi/Default/Storage/ext \
 root/.local/share/gvfs-metadata \
+root/.local/share/zeitgeist/fts.index \
+root/.config/geany/session.conf \
 frankeinux_dist.iso
 
 xorriso -as mkisofs \

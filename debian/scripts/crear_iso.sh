@@ -5,10 +5,11 @@ mkdir -pv /iso/live/boot/grub
 mkdir -pv /iso/live/boot/grub/x86_64-emu
 mkdir -pv /iso/live/boot/grub/i386-pc
 
-cp -v /vmlinuz /iso/live/vmlinuz
 # cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/live/boot/grub/eltorito.img
+# cp -v /boot/initrd.img-6.19-x86_64       /iso/live/initrd.img-6.19-x86_64.zstd
+cp -v   /vmlinuz                           /iso/live/vmlinuz
 cp -v   /boot/grub/x86_64-emu/kernel.img   /iso/live/boot/grub/x86_64-emu/kernel.img
-cp -v   /boot/initrd.img-6.19-x86_64       /iso/live/initrd.img-6.19-x86_64.zstd
+cp -v   /boot/initrd.img-6.19-x86_64       /iso/live/initrd.img-6.19-x86_64.xz
 cp -rv  /boot/grub/i386-pc                 /iso/live/boot/grub
 cp -rv  /boot/grub/i386-pc/*               /iso/live/boot/grub/i386-pc
 cp -rvf /usr/lib/grub/i386-pc/*            /iso/live/boot/grub/i386-pc
@@ -19,7 +20,7 @@ echo "set default=0
 set timeout=3
 menuentry \"Frankeinux Live (Debian Sid)\" {
     linux /vmlinuz boot=live quiet
-    initrd /initrd.img-6.19-x86_64.zstd
+    initrd /initrd.img-6.19-x86_64.xz
 }" > "/iso/live/boot/grub/grub.cfg"
 
 mksquashfs / /iso/live/filesystem.squashfs -e \

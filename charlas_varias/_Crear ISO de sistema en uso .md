@@ -991,3 +991,392 @@ Si planeas "quemar" esta ISO en un pendrive con `dd` o grabarla directamente, te
 Esto hace que la ISO sea "híbrida", permitiendo que arranque tanto como un CD-ROM como desde un bloque de arranque de disco duro (USB).
 
 ¿Te gustaría que probemos un comando rápido para verificar si la ISO arranca bien usando **QEMU** antes de que la pases a un pendrive real?
+
+---
+
+# you asked
+
+#!/bin/sh
+
+mkdir -pv /iso/boot/grub
+mkdir -pv /iso/live
+
+cp -v /vmlinuz /iso/live/vmlinuz
+cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/boot/grub/eltorito.img
+cp -v /boot/initrd.img-6.19-x86_64 /iso/live/initrd.img-6.19-x86_64.zstd
+
+echo "set default=0
+set timeout=3
+menuentry \"Frankeinux Live (Debian Sid)\" {
+    linux /live/vmlinuz boot=live quiet
+    initrd /live/initrd.img-6.19-x86_64.zstd
+}" > "/iso/boot/grub/grub.cfg"
+
+mksquashfs / /iso/live/filesystem.squashfs -e \
+proc sys dev run tmp mnt media iso trixie debian_trixie otro \
+root/.cache \
+root/.config/vivaldi/Default/IndexedDB \
+root/.config/vivaldi/Default/Local Extension Settings \
+root/.config/vivaldi/Default/Session Storage \
+root/.config/vivaldi/Default/Sessions \
+root/.config/vivaldi/Default/TransportSecurity \
+root/.config/vivaldi/Default/shared_proto_db \
+root/.config/vivaldi/Safe Browsing \
+root/.local/share/gvfs-metadata \
+frankeinux_dist.iso
+
+xorriso -as mkisofs \
+  -iso-level 3 \
+  -full-iso9660-filenames \
+  -volid "FRANKEINUX" \
+  -output frankeinux_dist.iso \
+  -graft-points \
+  -b boot/grub/eltorito.img \
+  -no-emul-boot -boot-load-size 4 -boot-info-table \
+  --grub2-boot-info \
+  /iso
+
+---
+
+# gemini response
+
+Está **muy cerca de la perfección**, Eze. Ya resolviste el rompecabezas de las rutas de `xorriso` y el binario de arranque. 
+
+Sin embargo, hay un detalle técnico en tu comando `mksquashfs` que **va a fallar** debido a los espacios en los nombres de las carpetas de Vivaldi (como `Local Extension Settings`). Bash interpretará cada palabra como un archivo distinto si no las protegemos.
+
+Aquí tienes el script con las correcciones de sintaxis necesarias y un par de "toques de gracia" para que la ISO sea realmente profesional:
+
+---
+
+### Script "Frankeinux" Corregido
+
+```bash
+#!/bin/sh
+
+# 1. Preparar el terreno
+mkdir -pv /iso/boot/grub
+mkdir -pv /iso/live
+
+# 2. Copiar el Kernel y el Initrd (con tu versión específica 6.19)
+cp -v /vmlinuz /iso/live/vmlinuz
+cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/boot/grub/eltorito.img
+cp -v /boot/initrd.img-6.19-x86_64 /iso/live/initrd.img-6.19-x86_64.zstd
+
+# 3. Generar el grub.cfg
+echo "set default=0
+set timeout=3
+menuentry \"Frankeinux Live (Debian Sid)\" {
+    linux /live/vmlinuz boot=live quiet
+    initrd /live/initrd.img-6.19-x86_64.zstd
+}" > "/iso/boot/grub/grub.cfg"
+
+# 4. Crear el SquashFS (CON COMILLAS en las rutas con espacios)
+mksquashfs / /iso/live/filesystem.squashfs -e \
+  proc sys dev run tmp mnt media iso trixie debian_trixie otro \
+  "root/.cache" \
+  "root/.config/vivaldi/Default/IndexedDB" \
+  "root/.config/vivaldi/Default/Local Extension Settings" \
+  "root/.config/vivaldi/Default/Session Storage" \
+  "root/.config/vivaldi/Default/Sessions" \
+  "root/.config/vivaldi/Default/TransportSecurity" \
+  "root/.config/vivaldi/Default/shared_proto_db" \
+  "root/.config/vivaldi/Safe Browsing" \
+  "root/.local/share/gvfs-metadata" \
+  frankeinux_dist.iso
+
+# 5. Generar la ISO con xorriso
+# Agregué la bandera -R -J para que los nombres de archivos se vean bien en Windows/Linux
+xorriso -as mkisofs \
+  -iso-level 3 \
+  -full-iso9660-filenames \
+  -volid "FRANKEINUX" \
+  -output frankeinux_dist.iso \
+  -J -R \
+  -graft-points \
+  -b boot/grub/eltorito.img \
+  -no-emul-boot -boot-load-size 4 -boot-info-table \
+  --grub2-boot-info \
+  /iso
+```
+
+---
+
+### ¿Qué corregimos?
+
+* **Comillas en las exclusiones:** Rutas como `"root/.../Local Extension Settings"` ahora están entre comillas. Sin ellas, `mksquashfs` intentaría excluir una carpeta llamada `Local`, otra llamada `Extension` y otra llamada `Settings`, lo cual daría error.
+* **Extensiones RockRidge/Joliet (`-R -J`):** Agregué estas banderas a `xorriso`. Esto asegura que si abres la ISO en cualquier sistema, los nombres largos de archivos no se corten ni se conviertan en mayúsculas raras (formato 8.3).
+* **Ruta de salida:** Mantuviste `frankeinux_dist.iso` en la raíz. Como ya está en tu lista de exclusión de `mksquashfs`, no tendrás problemas de recursividad.
+
+### Cómo probar tu creación
+Antes de gastar un pendrive, podés probar si Frankeinux arranca directamente desde tu terminal de Manjaro usando **QEMU**:
+
+```bash
+qemu-system-x86_64 -enable-kvm -m 2G -cdrom frankeinux_dist.iso
+```
+
+### Un último consejo de "limpieza"
+Si notas que la ISO queda muy pesada, podrías considerar agregar `var/cache/apt/archives` a la lista de exclusiones (`-e`). Eso borrará todos los paquetes `.deb` descargados que ya están instalados, ahorrando cientos de MB.
+
+¿Te gustaría que veamos cómo agregarle un **fondo de pantalla personalizado** al menú de GRUB de la ISO para que el proyecto Frankeinux tenga más estilo?
+
+---
+
+# you asked
+
+¿Cómo se usa esto?
+
+ >  mksquashfs -help-section compression
+Filesystem compression options:
+-b <block-size>         set data block to <block-size>.  Default 128 Kbytes.  Optionally a suffix of K, KB, Kbytes or M, MB, Mbytes can be given to specify
+                        Kbytes or Mbytes respectively
+-comp <comp>            select <comp> compression.  Run -help-comp <comp> to get compressor options for <comp>, or <all> for all the compressors.
+                        Compressors available:
+                                gzip (default)
+                                lzo
+                                lz4
+                                xz
+                                zstd
+                                lzma
+
+---
+
+# gemini response
+
+Estas opciones controlan el equilibrio entre **cuánto va a pesar la ISO** y **qué tan rápido va a arrancar** el sistema. En un proyecto como el tuyo, donde estás reconstruyendo un sistema Debian completo, elegir el compresor adecuado puede ahorrarte gigabytes de espacio.
+
+Aquí tienes cómo aplicar estas herramientas a tu comando de `mksquashfs`:
+
+---
+
+### 1. El compresor (`-comp`)
+Define qué algoritmo se encarga de "achicar" los archivos. Los más usados son:
+
+| Algoritmo | Ventaja | Desventaja | Uso ideal |
+| :--- | :--- | :--- | :--- |
+| **xz** | Es el que más comprime. La ISO pesará lo mínimo posible. | Muy lento al crear la imagen y exige más CPU al arrancar. | Para ISOs finales que se van a distribuir por internet. |
+| **zstd** | El equilibrio perfecto. Compresión muy buena y descompresión ultrarrápida. | Es relativamente nuevo (algunos kernels muy viejos no lo ven). | **Recomendado para uso diario.** |
+| **gzip** | El estándar por defecto. Muy compatible. | Compresión mediocre comparada con los modernos. | Si necesitas máxima compatibilidad con hardware viejo. |
+| **lz4** | Velocidad de descompresión instantánea. | El archivo final será mucho más grande. | Para sistemas que corren desde un disco duro lento. |
+
+### 2. El tamaño de bloque (`-b`)
+Define el tamaño de los "paquetes" de datos que se comprimen juntos.
+* **Default:** `128K`.
+* **Rango:** Desde `4K` hasta `1M`.
+* **Regla de oro:** Cuanto más grande el bloque (`1M`), **mejor compresión** (la ISO pesa menos), pero la lectura de archivos pequeños puede ser un poco más lenta porque el sistema tiene que descomprimir un bloque de 1MB entero para leer un archivo de 1KB.
+
+---
+
+### Ejemplos prácticos para tu script
+
+#### Opción A: Máxima compresión (ISO pequeña)
+Si quieres que tu `frankeinux_dist.iso` ocupe lo mínimo posible (ideal para compartirla):
+```bash
+mksquashfs / /iso/live/filesystem.squashfs -comp xz -b 1M -e [tus_exclusiones]
+```
+
+#### Opción B: Rendimiento optimizado (Arranque rápido)
+Si vas a estar probando la ISO muchas veces y quieres que el proceso de creación y el arranque sean ágiles, **zstd** es la mejor opción actual:
+```bash
+mksquashfs / /iso/live/filesystem.squashfs -comp zstd -b 256K -e [tus_exclusiones]
+```
+
+---
+
+### Cómo aplicarlo a tu script actual
+Simplemente inserta los flags justo después de la ruta de salida. Tu comando quedaría así:
+
+```bash
+mksquashfs / /iso/live/filesystem.squashfs \
+  -comp zstd -b 1M \
+  -e proc sys dev run tmp mnt media iso trixie debian_trixie otro \
+  "root/.cache" \
+  # ... resto de exclusiones ...
+  frankeinux_dist.iso
+```
+
+### Un detalle sobre `zstd`
+Como estás usando un **Kernel 6.19**, `zstd` te va a funcionar de maravilla y notarás que el sistema "vuela" al abrir aplicaciones pesadas desde la ISO.
+
+¿Te gustaría que probemos un comando para comparar cuánto tiempo tarda cada compresor en tu procesador AMD Phenom II antes de decidir cuál dejar en el script final?
+
+---
+
+# you asked
+
+xorriso : NOTE : -return_with SORRY 32 triggered by problem severity MISHAP
+
+#!/bin/sh
+
+mkdir -pv /iso/live
+mkdir -pv /iso/live/boot/grub
+mkdir -pv /iso/live/boot/grub/x86_64-emu
+
+cp -v /vmlinuz /iso/live/vmlinuz
+# cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/live/boot/grub/eltorito.img
+cp -v /boot/grub/x86_64-emu/kernel.img     /iso/live/boot/grub/x86_64-emu/kernel.img
+cp -v /boot/initrd.img-6.19-x86_64         /iso/live/initrd.img-6.19-x86_64.zstd
+cp -rv /boot/grub/i386-pc                  /iso/live/boot/grub
+cp -rv /boot/grub/x86_64-emu               /iso/live/boot/grub
+
+echo "set default=0
+set timeout=3
+menuentry \"Frankeinux Live (Debian Sid)\" {
+    linux /live/vmlinuz boot=live quiet
+    initrd /live/initrd.img-6.19-x86_64.zstd
+}" > "/iso/live/boot/grub/grub.cfg"
+
+mksquashfs / /iso/live/filesystem.squashfs -e \
+proc sys dev run tmp mnt media iso trixie debian_trixie otro \
+"root/.config/vivaldi/Default/Local Extension Settings" \
+"root/.config/vivaldi/Default/Session Storage" \
+"root/.config/vivaldi/Safe Browsing" \
+"root/.config/vivaldi/Default/Local Storage" \
+"root/.config/vivaldi/Default/Network Action Predictor-journal" \
+"root/.config/vivaldi/Default/History-journal" \
+"root/.config/vivaldi/Default/Network Persistent State" \
+"root/.config/vivaldi/Default/Site Characteristics Database" \
+"root/.config/vivaldi/System Profile/Storage/ext" \
+root/.cache \
+root/.config/vivaldi/Default/IndexedDB \
+root/.config/vivaldi/Default/Sessions \
+root/.config/vivaldi/Default/TransportSecurity \
+root/.config/vivaldi/Default/shared_proto_db \
+root/.config/vivaldi/Default/Storage/ext \
+root/.config/vivaldi/Default/Preferences \
+root/.config/vivaldi/Default/QuotaManager-journal \
+root/.config/geany/geany_socket_manjaro__0 \
+root/.config/geany/session.conf \
+root/.local/share/gvfs-metadata \
+root/.local/share/recently-used.xbel \
+root/.local/share/zeitgeist/activity.sqlite \
+root/.local/share/zeitgeist/fts.index \
+root/.node_repl_history \
+usr/lib/debug \
+usr/lib64/debug \
+var/log/journal \
+-comp xz -b 2M
+
+rm -v /iso/frankeinux.iso
+xorriso -as mkisofs \
+  -iso-level 3 \
+  -full-iso9660-filenames \
+  -volid "FRANKEINUX" \
+  -output /iso/frankeinux.iso \
+  -J -R \
+  -graft-points \
+  -b /boot/grub/i386-pc/boot.img \
+  -no-emul-boot -boot-load-size 4 -boot-info-table \
+  --grub2-boot-info \
+  /iso/live
+
+echo "Comando para probar el iso
+qemu-system-x86_64 -enable-kvm -m 2G -cdrom /iso/frankeinux.iso
+"
+
+---
+
+# gemini response
+
+El pantallazo de QEMU y el error de `xorriso` nos dan exactamente la pista de lo que salió mal. Estás enfrentando dos problemas distintos que se cruzaron en este intento:
+
+### 1. El "GRUB Floppy Error" en QEMU
+Si te fijas en tu script, comentaste (anulaste con `#`) la línea que copiaba `eltorito.img` y decidiste usar `boot.img` en el comando `xorriso`. 
+* **El concepto clave:** `boot.img` es un código de arranque diseñado exclusivamente para el sector MBR de **discos duros y disquetes**. Cuando QEMU intenta leer el CD, ve un código de disquete, se confunde, y lanza el "GRUB Floppy Error".
+* **La solución:** Para arrancar un CD/ISO en sistemas BIOS, el estándar de la industria exige una imagen "El Torito". **Debes usar `eltorito.img` sí o sí.**
+
+### 2. El error "SORRY 32 (MISHAP)" de xorriso
+Este error significa que `xorriso` no pudo encontrar el archivo de arranque que le pediste. Ocurrió por un par de cambios estructurales que hiciste:
+* Le dijiste a xorriso que empaquetara solo la carpeta `/iso/live` (la última línea del script).
+* Al hacer esto, la raíz de tu CD ya no es `/iso`, sino el *interior* de la carpeta `live`.
+* Por lo tanto, tu archivo `grub.cfg` iba a fallar de todas formas, porque busca el kernel en `/live/vmlinuz`, pero en el CD final, `vmlinuz` habría quedado tirado directamente en la raíz (`/vmlinuz`).
+
+---
+
+### El Script Definitivo de Frankeinux
+
+Vamos a volver a la estructura dual (`/iso/live` para el sistema y `/iso/boot` para el arranque) y a colocar el archivo `.iso` fuera de esa carpeta para evitar bucles.
+
+Copia este script. He mantenido intactas tus opciones de compresión (`xz` a `2M`) y tus geniales exclusiones para limpiar Vivaldi y Geany:
+
+```bash
+#!/bin/sh
+
+# 1. Estructura correcta (separando sistema y arranque)
+mkdir -pv /iso/live
+mkdir -pv /iso/boot/grub
+
+# 2. Copiar archivos de sistema a /live/
+cp -v /vmlinuz /iso/live/vmlinuz
+cp -v /boot/initrd.img-6.19-x86_64 /iso/live/initrd.img-6.19-x86_64.zstd
+
+# 3. Copiar el archivo El Torito a /boot/ (ESTO ES OBLIGATORIO PARA CD/ISO)
+cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/boot/grub/eltorito.img
+
+# 4. Configurar el menú GRUB
+# (Ahora sí encontrará /live/vmlinuz porque empaquetaremos la carpeta /iso completa)
+echo "set default=0
+set timeout=3
+menuentry \"Frankeinux Live (Debian Sid)\" {
+    linux /live/vmlinuz boot=live quiet
+    initrd /live/initrd.img-6.19-x86_64.zstd
+}" > "/iso/boot/grub/grub.cfg"
+
+# 5. Crear el SquashFS
+# (Mantenemos tus parámetros xz -b 2M para máxima compresión)
+mksquashfs / /iso/live/filesystem.squashfs -e \
+proc sys dev run tmp mnt media iso trixie debian_trixie otro \
+"root/.config/vivaldi/Default/Local Extension Settings" \
+"root/.config/vivaldi/Default/Session Storage" \
+"root/.config/vivaldi/Safe Browsing" \
+"root/.config/vivaldi/Default/Local Storage" \
+"root/.config/vivaldi/Default/Network Action Predictor-journal" \
+"root/.config/vivaldi/Default/History-journal" \
+"root/.config/vivaldi/Default/Network Persistent State" \
+"root/.config/vivaldi/Default/Site Characteristics Database" \
+"root/.config/vivaldi/System Profile/Storage/ext" \
+root/.cache \
+root/.config/vivaldi/Default/IndexedDB \
+root/.config/vivaldi/Default/Sessions \
+root/.config/vivaldi/Default/TransportSecurity \
+root/.config/vivaldi/Default/shared_proto_db \
+root/.config/vivaldi/Default/Storage/ext \
+root/.config/vivaldi/Default/Preferences \
+root/.config/vivaldi/Default/QuotaManager-journal \
+root/.config/geany/geany_socket_manjaro__0 \
+root/.config/geany/session.conf \
+root/.local/share/gvfs-metadata \
+root/.local/share/recently-used.xbel \
+root/.local/share/zeitgeist/activity.sqlite \
+root/.local/share/zeitgeist/fts.index \
+root/.node_repl_history \
+usr/lib/debug \
+usr/lib64/debug \
+var/log/journal \
+frankeinux.iso \
+-comp xz -b 2M
+
+# 6. Generar la ISO
+# Es mejor poner la ISO en la raíz (/) para que no interfiera con la carpeta /iso/
+rm -vf /frankeinux.iso
+xorriso -as mkisofs \
+  -iso-level 3 \
+  -full-iso9660-filenames \
+  -volid "FRANKEINUX" \
+  -output /frankeinux.iso \
+  -J -R \
+  -graft-points \
+  -b boot/grub/eltorito.img \
+  -no-emul-boot -boot-load-size 4 -boot-info-table \
+  --grub2-boot-info \
+  /iso
+
+# 7. Instrucciones para probar
+echo "Comando para probar el iso:"
+echo "qemu-system-x86_64 -enable-kvm -m 2G -cdrom /frankeinux.iso"
+```
+
+### ¿Qué notarás al ejecutar esto?
+1. La compresión `xz` con bloques de `2M` que elegiste va a tardar un rato largo en procesar (y va a exprimir tu CPU al máximo), pero la ISO final será ridículamente liviana.
+2. QEMU ya no dará error de "Floppy", sino que entrará directo al menú de GRUB que escribimos con el título "Frankeinux Live".
+
+¿Querés que veamos cómo añadir un parámetro extra al comando final de `xorriso` para asegurar que esta ISO también bootee si la grabás en un USB con Rufus o Ventoy?

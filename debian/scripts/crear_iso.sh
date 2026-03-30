@@ -62,10 +62,10 @@ xorriso -as mkisofs \
   -volid "FRANKEINUX" \
   -output /iso/frankeinux.iso \
   -J -R \
-  -b boot/grub/eltorito.img \
+  -b live/boot/grub/eltorito.img \
   -no-emul-boot -boot-load-size 4 -boot-info-table \
   --grub2-boot-info \
-  /iso/live
+  /iso
 
 echo "Comando para probar el iso
 qemu-system-x86_64 -enable-kvm -m 2G -cdrom /iso/frankeinux.iso

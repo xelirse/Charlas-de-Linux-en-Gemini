@@ -3,12 +3,14 @@
 mkdir -pv /iso/live
 mkdir -pv /iso/live/boot/grub
 mkdir -pv /iso/live/boot/grub/x86_64-emu
+mkdir -pv /iso/live/boot/grub/i386-pc
 
 cp -v /vmlinuz /iso/live/vmlinuz
 # cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/live/boot/grub/eltorito.img
 cp -v /boot/grub/x86_64-emu/kernel.img     /iso/live/boot/grub/x86_64-emu/kernel.img
 cp -v /boot/initrd.img-6.19-x86_64         /iso/live/initrd.img-6.19-x86_64.zstd
 cp -rv /boot/grub/i386-pc                  /iso/live/boot/grub
+cp -rv /boot/grub/i386-pc/*                /iso/live/boot/grub/i386-pc
 cp -rv /boot/grub/x86_64-emu               /iso/live/boot/grub
 
 echo "set default=0
@@ -57,8 +59,7 @@ xorriso -as mkisofs \
   -volid "FRANKEINUX" \
   -output /iso/frankeinux.iso \
   -J -R \
-  -graft-points \
-  -b /boot/grub/i386-pc/boot.img \
+  -b boot/grub/eltorito.img \
   -no-emul-boot -boot-load-size 4 -boot-info-table \
   --grub2-boot-info \
   /iso/live

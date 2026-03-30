@@ -54,7 +54,7 @@ xorriso -as mkisofs \
   -iso-level 3 \
   -full-iso9660-filenames \
   -volid "FRANKEINUX" \
-  -output /frankeinux.iso \
+  -output /iso/frankeinux.iso \
   -J -R \
   -graft-points \
   -b /boot/grub/x86_64-emu/kernel.img \

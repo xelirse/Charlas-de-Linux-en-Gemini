@@ -19,8 +19,8 @@ cp -rv  /boot/grub/x86_64-emu              /iso/live/boot/grub
 echo "set default=0
 set timeout=3
 menuentry \"Frankeinux Live (Debian Sid)\" {
-    linux /vmlinuz boot=live quiet
-    initrd /initrd.img-6.19-x86_64.xz
+    linux  /live/vmlinuz boot=live quiet
+    initrd /live/initrd.img-6.19-x86_64.xz
 }" > "/iso/live/boot/grub/grub.cfg"
 
 mksquashfs / /iso/live/filesystem.squashfs -e \

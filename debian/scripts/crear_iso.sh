@@ -2,10 +2,14 @@
 
 mkdir -pv /iso/boot/grub
 mkdir -pv /iso/live
+mkdir -pv /iso/boot/grub/x86_64-emu
 
 cp -v /vmlinuz /iso/live/vmlinuz
-cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/boot/grub/eltorito.img
+# cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/boot/grub/eltorito.img
+cp -v /boot/grub/x86_64-emu/kernel.img /iso/boot/grub/x86_64-emu/kernel.img
 cp -v /boot/initrd.img-6.19-x86_64 /iso/live/initrd.img-6.19-x86_64.zstd
+cp -rv /boot/grub/i386-pc /iso/boot/grub
+cp -rv /boot/grub/x86_64-emu /iso/boot/grub
 
 echo "set default=0
 set timeout=3
@@ -45,6 +49,7 @@ usr/lib64/debug \
 var/log/journal \
 -comp xz -b 2M
 
+rm -v /iso/frankeinux.iso
 xorriso -as mkisofs \
   -iso-level 3 \
   -full-iso9660-filenames \
@@ -52,11 +57,11 @@ xorriso -as mkisofs \
   -output /frankeinux.iso \
   -J -R \
   -graft-points \
-  -b boot/grub/eltorito.img \
+  -b /boot/grub/x86_64-emu/kernel.img \
   -no-emul-boot -boot-load-size 4 -boot-info-table \
   --grub2-boot-info \
   /iso
 
 echo "Comando para probar el iso
-qemu-system-x86_64 -enable-kvm -m 2G -cdrom frankeinux_dist.iso
+qemu-system-x86_64 -enable-kvm -m 2G -cdrom /iso/frankeinux.iso
 "

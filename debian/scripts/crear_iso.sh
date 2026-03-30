@@ -5,7 +5,7 @@ mkdir -pv /iso/live/boot/grub
 mkdir -pv /iso/live/boot/grub/x86_64-emu
 
 cp -v /vmlinuz /iso/live/vmlinuz
-# cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/boot/grub/eltorito.img
+# cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/live/boot/grub/eltorito.img
 cp -v /boot/grub/x86_64-emu/kernel.img     /iso/live/boot/grub/x86_64-emu/kernel.img
 cp -v /boot/initrd.img-6.19-x86_64         /iso/live/initrd.img-6.19-x86_64.zstd
 cp -rv /boot/grub/i386-pc                  /iso/live/boot/grub

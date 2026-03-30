@@ -19,20 +19,21 @@ cp -rv  /boot/grub/x86_64-emu              /iso/live/boot/grub
 echo "set default=0
 set timeout=3
 menuentry \"Frankeinux Live (Debian Sid)\" {
-    linux  /live/vmlinuz boot=live quiet
-    initrd /live/initrd.img-6.19-x86_64.xz
+    linux /vmlinuz-6.19.10+deb14-amd64 boot=live live-media-path=/ quiet
+    initrd /initrd.img-6.19-x86_64.xz
 }" > "/iso/live/boot/grub/grub.cfg"
 
 mksquashfs / /iso/live/filesystem.squashfs -e \
 proc sys dev run tmp mnt media iso trixie debian_trixie otro \
 "root/.config/vivaldi/Default/Local Extension Settings" \
 "root/.config/vivaldi/Default/Session Storage" \
-"root/.config/vivaldi/Safe Browsing" \
+"root/.config/vivaldi/Default/History-journal" \
 "root/.config/vivaldi/Default/Local Storage" \
 "root/.config/vivaldi/Default/Network Action Predictor-journal" \
-"root/.config/vivaldi/Default/History-journal" \
 "root/.config/vivaldi/Default/Network Persistent State" \
+"root/.config/vivaldi/Default/Reporting and NEL-journal" \
 "root/.config/vivaldi/Default/Site Characteristics Database" \
+"root/.config/vivaldi/Safe Browsing" \
 "root/.config/vivaldi/System Profile/Storage/ext" \
 root/.cache \
 root/.config/vivaldi/Default/IndexedDB \
@@ -52,7 +53,7 @@ root/.node_repl_history \
 usr/lib/debug \
 usr/lib64/debug \
 var/log/journal \
--comp xz -b 2M
+-comp zstd -b 2M
 
 rm -v /iso/frankeinux.iso
 
@@ -62,11 +63,12 @@ xorriso -as mkisofs \
   -volid "FRANKEINUX" \
   -output /iso/frankeinux.iso \
   -J -R \
-  -b live/boot/grub/eltorito.img \
+  -b boot/grub/eltorito.img \
   -no-emul-boot -boot-load-size 4 -boot-info-table \
   --grub2-boot-info \
-  /iso
+  /iso/live
 
 echo "Comando para probar el iso
 qemu-system-x86_64 -enable-kvm -m 2G -cdrom /iso/frankeinux.iso
+
 "

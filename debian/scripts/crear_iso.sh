@@ -25,24 +25,25 @@ menuentry \"Frankeinux Live (Debian Sid)\" {
 
 mksquashfs / /iso/live/filesystem.squashfs -e \
 proc sys dev run tmp mnt media iso trixie debian_trixie otro \
-"root/.config/vivaldi/Default/Local Extension Settings" \
-"root/.config/vivaldi/Default/Session Storage" \
+"root/.config/vivaldi/Default/DownloadMetadata" \
 "root/.config/vivaldi/Default/History-journal" \
+"root/.config/vivaldi/Default/Local Extension Settings" \
 "root/.config/vivaldi/Default/Local Storage" \
 "root/.config/vivaldi/Default/Network Action Predictor-journal" \
 "root/.config/vivaldi/Default/Network Persistent State" \
 "root/.config/vivaldi/Default/Reporting and NEL-journal" \
+"root/.config/vivaldi/Default/Session Storage" \
 "root/.config/vivaldi/Default/Site Characteristics Database" \
 "root/.config/vivaldi/Safe Browsing" \
 "root/.config/vivaldi/System Profile/Storage/ext" \
 root/.cache \
 root/.config/vivaldi/Default/IndexedDB \
-root/.config/vivaldi/Default/Sessions \
-root/.config/vivaldi/Default/TransportSecurity \
-root/.config/vivaldi/Default/shared_proto_db \
-root/.config/vivaldi/Default/Storage/ext \
 root/.config/vivaldi/Default/Preferences \
 root/.config/vivaldi/Default/QuotaManager-journal \
+root/.config/vivaldi/Default/Sessions \
+root/.config/vivaldi/Default/Storage/ext \
+root/.config/vivaldi/Default/TransportSecurity \
+root/.config/vivaldi/Default/shared_proto_db \
 root/.config/geany/geany_socket_manjaro__0 \
 root/.config/geany/session.conf \
 root/.local/share/gvfs-metadata \
@@ -52,7 +53,9 @@ root/.local/share/zeitgeist/fts.index \
 root/.node_repl_history \
 usr/lib/debug \
 usr/lib64/debug \
-var/log/journal \
+var/lib/apt/extended_states \
+var/lib/dpkg/status-old \
+var/log \
 -comp zstd -b 2M
 
 rm -v /iso/frankeinux.iso

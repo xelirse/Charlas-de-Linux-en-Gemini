@@ -7,11 +7,13 @@ mkdir -pv /iso/live/boot/grub/i386-pc
 
 cp -v /vmlinuz /iso/live/vmlinuz
 # cp -v /usr/lib/grub/i386-pc/eltorito.img /iso/live/boot/grub/eltorito.img
-cp -v /boot/grub/x86_64-emu/kernel.img     /iso/live/boot/grub/x86_64-emu/kernel.img
-cp -v /boot/initrd.img-6.19-x86_64         /iso/live/initrd.img-6.19-x86_64.zstd
-cp -rv /boot/grub/i386-pc                  /iso/live/boot/grub
-cp -rv /boot/grub/i386-pc/*                /iso/live/boot/grub/i386-pc
-cp -rv /boot/grub/x86_64-emu               /iso/live/boot/grub
+cp -v   /boot/grub/x86_64-emu/kernel.img   /iso/live/boot/grub/x86_64-emu/kernel.img
+cp -v   /boot/initrd.img-6.19-x86_64       /iso/live/initrd.img-6.19-x86_64.zstd
+cp -rv  /boot/grub/i386-pc                 /iso/live/boot/grub
+cp -rv  /boot/grub/i386-pc/*               /iso/live/boot/grub/i386-pc
+cp -rvf /usr/lib/grub/i386-pc/*            /iso/live/boot/grub/i386-pc
+cp -vf  /usr/lib/grub/i386-pc/eltorito.img /iso/live/boot/grub/eltorito.img
+cp -rv  /boot/grub/x86_64-emu              /iso/live/boot/grub
 
 echo "set default=0
 set timeout=3

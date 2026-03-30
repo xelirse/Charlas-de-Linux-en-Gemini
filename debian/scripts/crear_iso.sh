@@ -56,7 +56,7 @@ usr/lib64/debug \
 var/lib/apt/extended_states \
 var/lib/dpkg/status-old \
 var/log \
--comp zstd -b 2M
+-comp xz -b 2M
 
 rm -v /iso/frankeinux.iso
 

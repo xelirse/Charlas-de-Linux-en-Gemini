@@ -1,16 +1,26 @@
-#!/bin/bash
+#!/bin/sh
 
-if [[ -z "$1" ]]; then
-    echo "Uso: lw <nombre_del_ejecutable>"
-    exit 1
+target="$1"
+cmd_path=""
+
+# Resolución de ruta
+if [[ "$target" == /* || "$target" == .* ]]; then
+	cmd_path=$(realpath "$target" 2>/dev/null)
+else
+	cmd_path=$(which "$target" 2>/dev/null)
 fi
 
-# Localiza el binario usando el PATH actual
-target=$(which "$1" 2>/dev/null)
+if [[ -f "$cmd_path" ]]; then
+	echo -e "\e[1;34m[Binary]:\e[0m $cmd_path"
+	
+	# Check de permisos de ejecución
+	if [[ ! -x "$cmd_path" ]]; then
+		echo -e "\e[1;33m[!] Advertencia: El archivo no tiene permisos de ejecución (chmod +x).\e[0m"
+	fi
 
-if [[ -f "$target" ]]; then
-    ldd "$target"
+	# Salida de ldd con resaltado
+	ldd "$cmd_path" | sed -e 's/not found/\x1b[1;31mNOT FOUND\x1b[0m/g'
 else
-    echo "Comando '$1' no encontrado."
-    exit 1
+	echo -e "\e[1;31m[-] No se pudo localizar el archivo: $target\e[0m"
+	return 1
 fi

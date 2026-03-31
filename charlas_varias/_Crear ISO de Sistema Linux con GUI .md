@@ -477,29 +477,31 @@ Si `apt` se niega a instalarlo por conflictos, mi recomendación es que uses **R
 
 # you asked
 
-    Descargando paquetes de MX Linux...
-    --2026-03-26 12:25:56--  https://mxrepo.com/mx/repo/pool/main/m/mx-snapshot/mx-snapshot_24.03.01_amd64.deb
-    Resolviendo mxrepo.com (mxrepo.com)... 67.20.115.172
-    Conectando con mxrepo.com (mxrepo.com)[67.20.115.172]:443... conectado.
-    Petición HTTP enviada, esperando respuesta... 404 Not Found
-    2026-03-26 12:25:57 ERROR 404: Not Found.
-    
-    --2026-03-26 12:25:57--  https://mxrepo.com/mx/repo/pool/main/m/mx-libs/mx-libs_24.03.01_amd64.deb
-    Resolviendo mxrepo.com (mxrepo.com)... 67.20.115.172
-    Conectando con mxrepo.com (mxrepo.com)[67.20.115.172]:443... conectado.
-    Petición HTTP enviada, esperando respuesta... 404 Not Found
-    2026-03-26 12:25:58 ERROR 404: Not Found.
+Descargando paquetes de MX Linux...
+--2026-03-26 12:25:56--  https://mxrepo.com/mx/repo/pool/main/m/mx-snapshot/mx-snapshot_24.03.01_amd64.deb
+Resolviendo mxrepo.com (mxrepo.com)... 67.20.115.172
+Conectando con mxrepo.com (mxrepo.com)[67.20.115.172]:443... conectado.
+Petición HTTP enviada, esperando respuesta... 404 Not Found
+2026-03-26 12:25:57 ERROR 404: Not Found.
 
-    Obj:1 http://deb.debian.org/debian sid InRelease
-    Todos los paquetes están actualizados.   
-    Error: No se ha podido localizar el paquete isolinuxxorriso
-    Error: Se ha suministrado el fichero no admitido ./mx-libs_*.deb en la línea de órdenes
-    Error: Se ha suministrado el fichero no admitido ./mx-snapshot_*.deb en la línea de órdenes
-    ----------------------------------------------------
-    Instalación finalizada. Busca 'MX Snapshot' en tu menú.
-    ----------------------------------------------------
+--2026-03-26 12:25:57--  https://mxrepo.com/mx/repo/pool/main/m/mx-libs/mx-libs_24.03.01_amd64.deb
+Resolviendo mxrepo.com (mxrepo.com)... 67.20.115.172
+Conectando con mxrepo.com (mxrepo.com)[67.20.115.172]:443... conectado.
+Petición HTTP enviada, esperando respuesta... 404 Not Found
+2026-03-26 12:25:58 ERROR 404: Not Found.
 
-# gemini response  
+Obj:1 http://deb.debian.org/debian sid InRelease
+Todos los paquetes están actualizados.   
+Error: No se ha podido localizar el paquete isolinuxxorriso
+Error: Se ha suministrado el fichero no admitido ./mx-libs_*.deb en la línea de órdenes
+Error: Se ha suministrado el fichero no admitido ./mx-snapshot_*.deb en la línea de órdenes
+----------------------------------------------------
+Instalación finalizada. Busca 'MX Snapshot' en tu menú.
+----------------------------------------------------
+
+---
+
+# gemini response
 
 ¡Vaya! Fallaron los enlaces porque los repositorios de MX Linux suelen actualizar las versiones de los archivos `.deb` y borran los anteriores, lo que rompe los links directos rápidamente. Además, hubo un pequeño error de tipeo en el comando de dependencias (`isolinuxxorriso` deberían ser dos paquetes separados).
 
@@ -698,27 +700,27 @@ Error: Unable to satisfy dependencies. Reached two conflicting assignments:
    2. iso-snapshot-cli:amd64 Depende mx-iso-template | iso-template (>= 16.1mx15)
       but none of the choices are installable:
       [no choices]
-    Nota, seleccionando «mx-snapshot» en lugar de «./mx-snapshot_26.03.2_amd64.deb»
-    Resolviendo dependencias... ¡Error!
-    No se pudieron instalar algunos paquetes. Esto puede significar que
-    usted pidió una situación imposible o, si está usando la publicación
-    inestable, que algunos paquetes necesarios aún no se han creado o se
-    han sacado de «Incoming».
-    La siguiente información puede ayudar a resolver la situación:
-    
-    Dependencias insatisfechas:
-     mx-snapshot : Depende: mx-iso-template pero no es instalable o
-                            iso-template (>= 16.1mx15) pero no es instalable
-                   Depende: mx-remaster (>= 25.12.01) pero no es instalable
-                   Recomienda: mx-launcher-l10n pero no es instalable
-    Error: Unable to satisfy dependencies. Reached two conflicting assignments:
-       1. mx-snapshot:amd64=26.03.2 is selected for install
-       2. mx-snapshot:amd64 Depende mx-iso-template | iso-template (>= 16.1mx15)
-          but none of the choices are installable:
-          [no choices]
-    ----------------------------------------------------
-    Instalación completada. Ejecútalo con: sudo mx-snapshot
-    ----------------------------------------------------
+Nota, seleccionando «mx-snapshot» en lugar de «./mx-snapshot_26.03.2_amd64.deb»
+Resolviendo dependencias... ¡Error!
+No se pudieron instalar algunos paquetes. Esto puede significar que
+usted pidió una situación imposible o, si está usando la publicación
+inestable, que algunos paquetes necesarios aún no se han creado o se
+han sacado de «Incoming».
+La siguiente información puede ayudar a resolver la situación:
+
+Dependencias insatisfechas:
+ mx-snapshot : Depende: mx-iso-template pero no es instalable o
+                        iso-template (>= 16.1mx15) pero no es instalable
+               Depende: mx-remaster (>= 25.12.01) pero no es instalable
+               Recomienda: mx-launcher-l10n pero no es instalable
+Error: Unable to satisfy dependencies. Reached two conflicting assignments:
+   1. mx-snapshot:amd64=26.03.2 is selected for install
+   2. mx-snapshot:amd64 Depende mx-iso-template | iso-template (>= 16.1mx15)
+      but none of the choices are installable:
+      [no choices]
+----------------------------------------------------
+Instalación completada. Ejecútalo con: sudo mx-snapshot
+----------------------------------------------------
 
 ---
 
@@ -787,32 +789,32 @@ Si eso pasa, avísame y pasamos al **Plan B**: usar la versión ejecutable sin i
 Y que solo diga instalado si está instalado.
 
     --- Iniciando instalación inteligente de MX Snapshot ---
-    Leyendo lista de paquetes... ¡Error!
-    Error: Firma del archivo inválida
-    Error: Error interno, no se pudo localizar el miembro control.tar{.zst,.lz4,.gz,.xz,.bz2,.lzma,}
-    Error: No se pudo leer los datos meta de /tmp/mx-keys.deb
-    Error: No se pudieron analizar o abrir las listas de paquetes o el archivo de estado.
-    deb http://mxrepo.com/mx/repo/ wildflower main non-free
-        Obj:1 http://deb.debian.org/debian sid InRelease
-    Ign:2 https://mxrepo.com/mx/repo wildflower InRelease
-    Err:3 https://mxrepo.com/mx/repo wildflower Release
-      404  Not Found [IP: 67.20.115.172 443]
-    Error: El repositorio «http://mxrepo.com/mx/repo wildflower Release» no tiene un fichero de Publicación.
-    Información: No se puede actualizar de un repositorio como este de forma segura y por tanto está deshabilitado por omisión.
-    Información: Vea la página de manual apt-secure(8) para los detalles sobre la creación de repositorios y la configuración de usuarios.
-    Información: Algunas fuentes se pueden modernizar. Ejecute «apt modernize-sources» para hacerlo.
-    Instalando MX Snapshot y todas sus dependencias...
-    Error: No se ha podido localizar el paquete mx-snapshot
-    Error: No se ha podido localizar el paquete mx-iso-template
-    Error: No se ha podido localizar el paquete mx-remaster
-    Error: No se ha podido localizar el paquete iso-snapshot-cli
-    Limpiando rastros del repositorio MX...
+Leyendo lista de paquetes... ¡Error!
+Error: Firma del archivo inválida
+Error: Error interno, no se pudo localizar el miembro control.tar{.zst,.lz4,.gz,.xz,.bz2,.lzma,}
+Error: No se pudo leer los datos meta de /tmp/mx-keys.deb
+Error: No se pudieron analizar o abrir las listas de paquetes o el archivo de estado.
+deb http://mxrepo.com/mx/repo/ wildflower main non-free
     Obj:1 http://deb.debian.org/debian sid InRelease
-    Todos los paquetes están actualizados.   
-    ----------------------------------------------------
-    ¡Hecho! Ahora deberías tener MX Snapshot instalado.
-    Puedes lanzarlo desde el menú o con: sudo mx-snapshot
-    ----------------------------------------------------
+Ign:2 https://mxrepo.com/mx/repo wildflower InRelease
+Err:3 https://mxrepo.com/mx/repo wildflower Release
+  404  Not Found [IP: 67.20.115.172 443]
+Error: El repositorio «http://mxrepo.com/mx/repo wildflower Release» no tiene un fichero de Publicación.
+Información: No se puede actualizar de un repositorio como este de forma segura y por tanto está deshabilitado por omisión.
+Información: Vea la página de manual apt-secure(8) para los detalles sobre la creación de repositorios y la configuración de usuarios.
+Información: Algunas fuentes se pueden modernizar. Ejecute «apt modernize-sources» para hacerlo.
+Instalando MX Snapshot y todas sus dependencias...
+Error: No se ha podido localizar el paquete mx-snapshot
+Error: No se ha podido localizar el paquete mx-iso-template
+Error: No se ha podido localizar el paquete mx-remaster
+Error: No se ha podido localizar el paquete iso-snapshot-cli
+Limpiando rastros del repositorio MX...
+Obj:1 http://deb.debian.org/debian sid InRelease
+Todos los paquetes están actualizados.   
+----------------------------------------------------
+¡Hecho! Ahora deberías tener MX Snapshot instalado.
+Puedes lanzarlo desde el menú o con: sudo mx-snapshot
+----------------------------------------------------
 
 ---
 
@@ -912,59 +914,59 @@ Paquetes recomendados:
   localize-repo
 
 Resumen:
-    Actualizando: 0, Instalando 7, Eliminando: 0, no actualizando: 0
-    Tamaño de la descarga: 17,0 MB
-    Espacio necesario: 22,7 MB / 6.758 MB disponible  
+  Actualizando: 0, Instalando 7, Eliminando: 0, no actualizando: 0
+  Tamaño de la descarga: 17,0 MB
+  Espacio necesario: 22,7 MB / 6.758 MB disponible
 
-    Des:1 http://deb.debian.org/debian sid/main amd64 whois amd64 5.6.6 [71,9 kB]
-    Des:2 http://mxrepo.com/mx/repo bookworm/main amd64 antix-libs all 0.8.14+8 [93,4 kB]
-    Des:3 https://mxrepo.com/mx/repo bookworm/main amd64 mx-remaster all 25.12.02mx23 [183 kB]
-    Des:4 https://mxrepo.com/mx/repo bookworm/main amd64 mx-iso-template amd64 25.1.01mx23 [15,7 MB]
-    Des:5 https://mxrepo.com/mx/repo bookworm/main amd64 iso-snapshot-cli amd64 26.03.2 [446 kB]                                               
-    Des:6 https://mxrepo.com/mx/repo bookworm/main amd64 mx-launcher-l10n all 23.05.01 [17,7 kB]                                               
-    Des:7 https://mxrepo.com/mx/repo bookworm/main amd64 mx-snapshot amd64 26.03.2 [497 kB]                                                    
-    Descargados 17,0 MB en 15s (1.107 kB/s)                                                                                                    
-    Seleccionando el paquete antix-libs previamente no seleccionado.
-    (Leyendo la base de datos ... 278820 ficheros o directorios instalados actualmente.)
-    Preparando para desempaquetar .../0-antix-libs_0.8.14+8_all.deb ...
-    Desempaquetando antix-libs (0.8.14+8) ...
-    Seleccionando el paquete whois previamente no seleccionado.
-    Preparando para desempaquetar .../1-whois_5.6.6_amd64.deb ...
-    Desempaquetando whois (5.6.6) ...
-    Seleccionando el paquete mx-remaster previamente no seleccionado.
-    Preparando para desempaquetar .../2-mx-remaster_25.12.02mx23_all.deb ...
-    Desempaquetando mx-remaster (25.12.02mx23) ...
-    Seleccionando el paquete mx-iso-template previamente no seleccionado.
-    Preparando para desempaquetar .../3-mx-iso-template_25.1.01mx23_amd64.deb ...
-    Desempaquetando mx-iso-template (25.1.01mx23) ...
-    Seleccionando el paquete iso-snapshot-cli previamente no seleccionado.
-    Preparando para desempaquetar .../4-iso-snapshot-cli_26.03.2_amd64.deb ...
-    Desempaquetando iso-snapshot-cli (26.03.2) ...
-    Seleccionando el paquete mx-launcher-l10n previamente no seleccionado.
-    Preparando para desempaquetar .../5-mx-launcher-l10n_23.05.01_all.deb ...
-    Desempaquetando mx-launcher-l10n (23.05.01) ...
-    Seleccionando el paquete mx-snapshot previamente no seleccionado.
-    Preparando para desempaquetar .../6-mx-snapshot_26.03.2_amd64.deb ...
-    Desempaquetando mx-snapshot (26.03.2) ...
-    Configurando mx-launcher-l10n (23.05.01) ...
-    Configurando whois (5.6.6) ...
-    Configurando mx-iso-template (25.1.01mx23) ...
-    Configurando antix-libs (0.8.14+8) ...
-    Configurando mx-remaster (25.12.02mx23) ...
-    Configurando iso-snapshot-cli (26.03.2) ...
-    Configurando mx-snapshot (26.03.2) ...
-    Procesando disparadores para desktop-file-utils (0.28-1) ...
-    Procesando disparadores para hicolor-icon-theme (0.18-2) ...
-    Procesando disparadores para gnome-menus (3.38.1-2) ...
-    Procesando disparadores para man-db (2.13.1-1) ...
-    Procesando disparadores para mailcap (3.75) ...
-    ----------------------------------------------------
-    ¡Hecho! MX Snapshot se ha instalado correctamente.
-    Puedes lanzarlo desde el menú o con: sudo mx-snapshot
-    ----------------------------------------------------
-    Limpiando rastros del repositorio MX...  
+Des:1 http://deb.debian.org/debian sid/main amd64 whois amd64 5.6.6 [71,9 kB]
+Des:2 http://mxrepo.com/mx/repo bookworm/main amd64 antix-libs all 0.8.14+8 [93,4 kB]
+Des:3 https://mxrepo.com/mx/repo bookworm/main amd64 mx-remaster all 25.12.02mx23 [183 kB]
+Des:4 https://mxrepo.com/mx/repo bookworm/main amd64 mx-iso-template amd64 25.1.01mx23 [15,7 MB]
+Des:5 https://mxrepo.com/mx/repo bookworm/main amd64 iso-snapshot-cli amd64 26.03.2 [446 kB]                                               
+Des:6 https://mxrepo.com/mx/repo bookworm/main amd64 mx-launcher-l10n all 23.05.01 [17,7 kB]                                               
+Des:7 https://mxrepo.com/mx/repo bookworm/main amd64 mx-snapshot amd64 26.03.2 [497 kB]                                                    
+Descargados 17,0 MB en 15s (1.107 kB/s)                                                                                                    
+Seleccionando el paquete antix-libs previamente no seleccionado.
+(Leyendo la base de datos ... 278820 ficheros o directorios instalados actualmente.)
+Preparando para desempaquetar .../0-antix-libs_0.8.14+8_all.deb ...
+Desempaquetando antix-libs (0.8.14+8) ...
+Seleccionando el paquete whois previamente no seleccionado.
+Preparando para desempaquetar .../1-whois_5.6.6_amd64.deb ...
+Desempaquetando whois (5.6.6) ...
+Seleccionando el paquete mx-remaster previamente no seleccionado.
+Preparando para desempaquetar .../2-mx-remaster_25.12.02mx23_all.deb ...
+Desempaquetando mx-remaster (25.12.02mx23) ...
+Seleccionando el paquete mx-iso-template previamente no seleccionado.
+Preparando para desempaquetar .../3-mx-iso-template_25.1.01mx23_amd64.deb ...
+Desempaquetando mx-iso-template (25.1.01mx23) ...
+Seleccionando el paquete iso-snapshot-cli previamente no seleccionado.
+Preparando para desempaquetar .../4-iso-snapshot-cli_26.03.2_amd64.deb ...
+Desempaquetando iso-snapshot-cli (26.03.2) ...
+Seleccionando el paquete mx-launcher-l10n previamente no seleccionado.
+Preparando para desempaquetar .../5-mx-launcher-l10n_23.05.01_all.deb ...
+Desempaquetando mx-launcher-l10n (23.05.01) ...
+Seleccionando el paquete mx-snapshot previamente no seleccionado.
+Preparando para desempaquetar .../6-mx-snapshot_26.03.2_amd64.deb ...
+Desempaquetando mx-snapshot (26.03.2) ...
+Configurando mx-launcher-l10n (23.05.01) ...
+Configurando whois (5.6.6) ...
+Configurando mx-iso-template (25.1.01mx23) ...
+Configurando antix-libs (0.8.14+8) ...
+Configurando mx-remaster (25.12.02mx23) ...
+Configurando iso-snapshot-cli (26.03.2) ...
+Configurando mx-snapshot (26.03.2) ...
+Procesando disparadores para desktop-file-utils (0.28-1) ...
+Procesando disparadores para hicolor-icon-theme (0.18-2) ...
+Procesando disparadores para gnome-menus (3.38.1-2) ...
+Procesando disparadores para man-db (2.13.1-1) ...
+Procesando disparadores para mailcap (3.75) ...
+----------------------------------------------------
+¡Hecho! MX Snapshot se ha instalado correctamente.
+Puedes lanzarlo desde el menú o con: sudo mx-snapshot
+----------------------------------------------------
+Limpiando rastros del repositorio MX...
 
----  
+---
 
 # gemini response
 

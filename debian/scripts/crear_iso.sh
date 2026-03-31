@@ -80,8 +80,7 @@ qemu-system-x86_64 \
   -display gtk \
 -cdrom /iso/frankeinux.iso
 
-# Intentá cargar los drivers necesarios
+# Montar sistema de archivos
 # modprobe squashfs
 # modprobe loop
-# Si no tiraron error, intentá el montaje de nuevo con el loop explícito
 # mount -t squashfs -o loop /cd/filesystem.squashfs /fs

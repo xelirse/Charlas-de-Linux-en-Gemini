@@ -4,6 +4,7 @@ tabla="
 libmount.so.1    util-linux-libs
 libdbus-1.so.3   dbus
 mount            util-linux
+xhost            xorg-xhost
 "
 
 echo "$tabla" | awk -v key="$1" '$1 == key { print $2 }'

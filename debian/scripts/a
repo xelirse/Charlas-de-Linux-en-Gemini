@@ -1,3 +1,4 @@
 #!/bin/sh
 
-[[ "$1" == "libmount.so.1" ]] && echo util-linux-libs
+[[ "$1" == "libmount.so.1" ]]  && echo util-linux-libs
+[[ "$1" == "libdbus-1.so.3" ]] && echo dbus

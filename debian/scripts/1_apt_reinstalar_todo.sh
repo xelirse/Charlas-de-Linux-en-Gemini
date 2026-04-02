@@ -1,4 +1,10 @@
 #!/bin/sh
 
-# apt reinstalar todo
-$(echo apt reinstall $( apt list --installed 2>/dev/null | cat - | sed -E "s/\/(.+)|(L.+)//g" | tr "\n" " " ))
+# apt reinstalar todo menos libc
+$(echo apt reinstall $( apt list --installed 2>/dev/null | \
+	cat - | \
+	sed -E "s/\/(.+)|(L.+)//g" | \
+	grep -Ev "^base_files$" | \
+	grep -Ev "^libc6$" | \
+	tr "\n" " "
+))

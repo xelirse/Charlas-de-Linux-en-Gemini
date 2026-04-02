@@ -10,10 +10,12 @@ libmount.so.1          util-linux-libs
 libdbus-1.so.3         dbus
 libcrypto.so.3         openssl
 libassimp.so.6         assimp
+libicudata.so.76       icu
 libfltk.so.1.3.8       fltk
 libIex-3_4.so.33       openexr
-libicudata.so.76       icu
+grub-mkdevicemap       grub2-common
 libgphoto2.so.6.3.0    libgphoto2
-libOpenColorIO.so.2.5  opencolorio"
+libOpenColorIO.so.2.5  opencolorio
+"
 
 echo "$tabla" | awk -v key="$1" '$1 == key { print $2 }'

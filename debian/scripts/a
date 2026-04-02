@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# debian
+
 tabla="
 xset                   xorg-xset
 mount                  util-linux

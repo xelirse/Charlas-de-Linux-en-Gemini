@@ -1,24 +1,30 @@
 #!/bin/sh
 
-# archlinux
+# debian sid
+
+notas="
+libicudata.so.76       icu76                                    Chinese Community x86_64
+libfltk.so.1.3.8       lib64fltk1.3-1.3.8-2-omv4090.x86_64.rpm  OpenMandriva Main Release x86_64
+libgphoto2.so.6.3.0    libgphoto2-6t64_2.5.31-4_amd64.deb       Debian Main amd64                 Debian 13 (Trixie)
+"
 
 tabla="
-xset                   xorg-xset
-mount                  util-linux
-xhost                  xorg-xhost
-e2fsck                 e2fsck-static    # apt
-libxml2.so.2           libxml2-legacy
-libmount.so.1          util-linux-libs
-libdbus-1.so.3         dbus
-libcrypto.so.3         openssl
-libassimp.so.6         assimp
+xset                   x11-xserver-utils
+mount                  mount
+xhost                  x11-xserver-utils
+e2fsck                 e2fsprogs
+libxml2.so.2           null
+libmount.so.1          null
+libdbus-1.so.3         null
+libcrypto.so.3         libssl3t64
+libassimp.so.6         null
 libicudata.so.76       icu
-libfltk.so.1.3.8       fltk
-libIex-3_4.so.33       openexr
+libfltk.so.1.3.8       null
+libIex-3_4.so.33       null
 grub-mkdevicemap       grub2-common
-libgphoto2.so.6.3.0    libgphoto2
-libOpenColorIO.so.2.5  opencolorio
-part_msdos.mod         grub-pc-bin
+libgphoto2.so.6.3.0    null
+libOpenColorIO.so.2.5  null
+part_msdos.mod         grub-pc-bin_2
 "
 
 echo "$tabla" | awk -v key="$1" '$1 == key { print $2 }'

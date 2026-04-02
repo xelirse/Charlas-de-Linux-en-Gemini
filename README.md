@@ -8,6 +8,9 @@ Charlas de Linux en Gemini
 - __Firefox__: [AI Exporter - Gemini to PDF & Sync to Notion](https://addons.mozilla.org/en-US/firefox/addon/ai-exporter-chatgpt-to-pdf/)
 - __Chrome__: [AI Exporter - Gemini to PDF & Sync to Notion](https://chromewebstore.google.com/detail/ai-exporter-save-chatgpt/kagjkiiecagemklhmhkabbalfpbianbe)
 
+# Datos útiles
+ - /etc/pacman.d/hooks/fontconfig.hook
+
 # Licencia para mkinitcpio
 Corregido por mí (Xelirse) gracias a la ia
  - https://github.com/xelirse/Charlas-de-Linux-en-Gemini/blob/main/debian/scripts/mkinitcpio

@@ -24,7 +24,7 @@ libIex-3_4.so.33       null
 grub-mkdevicemap       grub2-common
 libgphoto2.so.6.3.0    null
 libOpenColorIO.so.2.5  null
-part_msdos.mod         grub-pc-bin_2
+part_msdos.mod         grub-pc-bin
 "
 
 echo "$tabla" | awk -v key="$1" '$1 == key { print $2 }'

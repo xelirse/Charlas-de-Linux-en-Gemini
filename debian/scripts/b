@@ -26,6 +26,10 @@ libgphoto2.so.6.3.0    null
 libOpenColorIO.so.2.5  null
 part_msdos.mod         grub-pc-bin
 dpkg-preconfigure      debconf
+lvm                    lvm
+pdata_tools            thin-provisioning-tools
+mount.cifs             cifs-utils
+dpkg-preconfigure      debconf
 "
 
 echo "$tabla" | awk -v key="$1" '$1 == key { print $2 }'

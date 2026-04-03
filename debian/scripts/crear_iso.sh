@@ -59,6 +59,8 @@ var/log/journal \
 
 rm -v /iso/frankeinux.iso
 
+sleep 1
+
 xorriso -as mkisofs \
   -iso-level 3 \
   -full-iso9660-filenames \

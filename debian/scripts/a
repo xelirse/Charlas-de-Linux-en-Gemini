@@ -23,7 +23,8 @@ libIex-3_4.so.33       openexr
 grub-mkdevicemap       null
 libgphoto2.so.6.3.0    null
 libOpenColorIO.so.2.5  opencolorio
-part_msdos.mod         grub
+part_msdos.mod         grub-2
+dpkg-preconfigure      null
 "
 
 echo "$tabla" | awk -v key="$1" '$1 == key { print $2 }'

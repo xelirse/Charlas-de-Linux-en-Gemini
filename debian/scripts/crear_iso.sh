@@ -1,6 +1,7 @@
 #!/bin/sh
 
 mkdir -pv /iso/live
+mkdir -pv /iso/live/live
 mkdir -pv /iso/live/boot/grub
 mkdir -pv /iso/live/boot/grub/x86_64-emu
 mkdir -pv /iso/live/boot/grub/i386-pc
@@ -19,11 +20,11 @@ cp -rv  /boot/grub/x86_64-emu              /iso/live/boot/grub
 echo "set default=0
 set timeout=3
 menuentry \"Frankeinux Live (Debian Sid)\" {
-    linux /vmlinuz-6.19.10+deb14-amd64 boot=live live-media-path=/ quiet
+    linux /vmlinuz-6.19.10+deb14-amd64 boot=live quiet components all_generic_ide
     initrd /initrd.img-6.19-x86_64.xz
 }" > "/iso/live/boot/grub/grub.cfg"
 
-mksquashfs / /iso/live/filesystem.squashfs -e \
+mksquashfs / /iso/live/live/filesystem.squashfs -e \
 proc sys dev run tmp mnt media iso trixie debian_trixie otro \
 "root/.config/vivaldi/Default/Local Extension Settings" \
 "root/.config/vivaldi/Default/Session Storage" \
@@ -62,12 +63,21 @@ xorriso -as mkisofs \
   -iso-level 3 \
   -full-iso9660-filenames \
   -volid "FRANKEINUX" \
-  -output /iso/frankeinux.iso \
-  -J -R \
-  -b boot/grub/eltorito.img \
+  -isohybrid-mbr /iso/live/boot/grub/i386-pc/boot_hybrid.img \
+  -eltorito-boot boot/grub/i386-pc/eltorito.img \
+  -eltorito-catalog boot/grub/boot.cat \
   -no-emul-boot -boot-load-size 4 -boot-info-table \
   --grub2-boot-info \
-  /iso/live
+  -output /iso/frankeinux.iso \
+/iso/live
+
+qemu-system-x86_64 \
+  -enable-kvm \
+  -m 4G \
+  -smp 4 \
+  -vga virtio \
+  -display gtk \
+-cdrom /iso/frankeinux.iso
 
 echo "Comando para probar el iso
 qemu-system-x86_64 -enable-kvm -m 2G -cdrom /iso/frankeinux.iso

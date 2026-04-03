@@ -73,7 +73,7 @@ xorriso -as mkisofs \
   -output /iso/frankeinux.iso \
 /iso/live
 
-echo "Comando para probar el iso
+echo " # Comando para probar el iso
 qemu-system-x86_64 \\
   -enable-kvm \\
   -m 4G \\

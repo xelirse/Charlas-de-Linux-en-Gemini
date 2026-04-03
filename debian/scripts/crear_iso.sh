@@ -71,15 +71,13 @@ xorriso -as mkisofs \
   -output /iso/frankeinux.iso \
 /iso/live
 
-qemu-system-x86_64 \
-  -enable-kvm \
-  -m 4G \
-  -smp 4 \
-  -vga virtio \
-  -display gtk \
--cdrom /iso/frankeinux.iso
-
 echo "Comando para probar el iso
-qemu-system-x86_64 -enable-kvm -m 2G -cdrom /iso/frankeinux.iso
+qemu-system-x86_64 \\
+  -enable-kvm \\
+  -m 4G \\
+  -smp 4 \\
+  -vga virtio \\
+  -display gtk \\
+-cdrom /iso/frankeinux.iso
 
 "

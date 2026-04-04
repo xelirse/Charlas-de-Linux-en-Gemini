@@ -55,6 +55,7 @@ usr/lib/debug \
 var/lib/pacman/sync \
 usr/lib64/debug \
 var/log/journal \
+root/Desktop/etc_xdg_autostart \
 -comp zstd -b 2M
 
 rm -v /iso/frankeinux.iso

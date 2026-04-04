@@ -59,7 +59,7 @@ var/log/journal \
 
 rm -v /iso/frankeinux.iso
 
-sleep 1
+sleep 2
 
 xorriso -as mkisofs \
   -iso-level 3 \

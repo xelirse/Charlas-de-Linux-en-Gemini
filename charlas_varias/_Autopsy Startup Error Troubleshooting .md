@@ -288,3 +288,231 @@ Ya que lograste que levantara, un par de consejos rápidos para tu entorno **Fra
 * **Desempeño:** Como tienes un Phenom II X4, si notas que el "Ingest" (el indexado de archivos) se vuelve muy pesado, puedes limitar el número de hilos en `Tools -> Options -> Autopsy -> Ingest`.
 
 Cualquier otro error de librerías o si te falta algún `.so` de *The Sleuth Kit*, avisame y lo resolvemos con un `ldd` rápido.
+
+---
+
+# you asked
+
+¿Qué hace Page Setup...? Le di click y no ocurre nada.
+
+---
+
+# gemini response
+
+Es normal que no pase nada; en realidad, es un problema de "cableado" interno de la plataforma sobre la que corre Autopsy.
+
+Aquí te explico qué debería hacer y por qué se queda mudo:
+
+### 1. ¿Qué es "Page Setup"?
+En la mayoría de las aplicaciones de escritorio, esta opción abre el cuadro de diálogo estándar para configurar la **impresión**. Sirve para definir:
+* El tamaño del papel (A4, Carta, etc.).
+* La orientación (Vertical u Horizontal).
+* Los márgenes de la página.
+
+### 2. ¿Por qué no abre nada en tu caso?
+Como Autopsy está construido sobre la plataforma **NetBeans Rich Client**, hereda muchos menús estándar de un entorno de desarrollo (IDE). Sin embargo, Autopsy es una herramienta de análisis forense, no un editor de texto o un procesador de documentos.
+
+* **Menú Huérfano:** Los desarrolladores de Autopsy no han implementado una función de impresión directa para la mayoría de las vistas. Al no haber un "objeto imprimible" seleccionado que el sistema reconozca, el comando simplemente no dispara ninguna acción.
+* **Problema de Java/GTK:** En entornos Linux (como el tuyo con LXDE/Sid), a veces las llamadas a los diálogos de impresión nativos de la JVM fallan silenciosamente si no hay una impresora configurada en el sistema o si faltan las bibliotecas de introspección de GTK para Java.
+
+### 3. ¿Cómo sacar reportes entonces?
+Si lo que necesitas es llevarte la información de lo que estás viendo en pantalla, **no uses Page Setup ni Print**. La forma correcta en Autopsy es mediante el botón:
+
+**`Generate Report`** (en la barra de herramientas superior).
+
+Desde ahí puedes exportar los resultados a:
+* **HTML:** Para leer en el navegador (es el más común y cómodo).
+* **Excel/CSV:** Si quieres procesar datos.
+* **PDF:** Si necesitas algo "listo para imprimir".
+
+**Resumen:** No te preocupes, no es que tu instalación esté rota (bueno, menos de lo que estaba antes con el tema de Java), es simplemente que esa función es un "residuo" del motor de NetBeans que no tiene utilidad real en esta herramienta.
+
+---
+
+# you asked
+
+The property "netbeans.default_userdir_root" was not set!
+
+---
+
+# gemini response
+
+Ese mensaje es un **warning** clásico de la plataforma NetBeans que aparece casi siempre que ejecutas Autopsy en Linux, y la buena noticia es que **no es crítico** para el funcionamiento del programa.
+
+Aquí te explico qué significa y por qué lo ves:
+
+### 1. ¿Qué es el `userdir_root`?
+NetBeans (el motor de Autopsy) necesita un lugar donde guardar tu configuración personal, los plugins instalados y el historial de casos recientes. Por defecto, busca una variable llamada `netbeans.default_userdir_root` para saber en qué carpeta base crear estos directorios.
+
+### 2. ¿Por qué sale el aviso?
+En el script de arranque de Autopsy para Linux, los desarrolladores suelen definir las rutas de forma relativa o mediante parámetros directos en el comando de ejecución, saltándose la definición de esta propiedad global en los archivos de configuración maestros de NetBeans.
+* Como la variable está vacía, el motor lanza el aviso.
+* Acto seguido, el programa usa su valor por defecto: `~/.autopsy/dev` (que es precisamente la carpeta que estuviste limpiando antes).
+
+### 3. ¿Deberías arreglarlo?
+**No es necesario.** Si Autopsy ya abre la interfaz y te permite crear casos, significa que ya encontró dónde guardar los datos (usualmente en tu `$HOME`).
+
+Sin embargo, si eres perfeccionista con los logs y quieres que desaparezca, tendrías que editar el archivo `/opt/autopsy/autopsy/etc/autopsy.conf` y añadir la propiedad en la sección de `default_options`:
+
+```text
+# Ejemplo de cómo se vería (No es obligatorio hacerlo)
+default_options="--branding autopsy -J-Dnetbeans.default_userdir_root='/home/eze/.autopsy' ..."
+```
+
+**Mi recomendación:** Ignóralo. En el mundo de Java sobre Linux, los logs suelen estar llenos de advertencias de este tipo sobre propiedades no seteadas o componentes de UI de Windows que no existen en GTK. Mientras no veas un `SEVERE` o un `Exception` que detenga el proceso, el sistema está sano.
+
+¿Ya probaste a cargar algún disco o imagen forense para ver si los módulos de **Ingest** funcionan bien con ese Java 11?
+
+---
+
+# you asked
+
+Activation failed: Not all requested modules can be enabled: 
+    [StandardModule:org.sleuthkit.autopsy.imagegallery jarFile: 
+    /opt/autopsy/autopsy/modules/org-sleuthkit-autopsy-imagegallery.jar]
+
+---
+
+# gemini response
+
+Este es el siguiente "jefe de nivel" de Autopsy en Linux. El módulo **Image Gallery** es el que más problemas da porque, a diferencia del resto del programa, depende casi exclusivamente de **JavaFX**.
+
+Si este módulo falla al activarse, es porque la JVM (Java 11) no encuentra las librerías gráficas necesarias para renderizar la galería de imágenes. En sistemas basados en Arch/Manjaro o Debian Sid, el OpenJDK suele venir "decapitado" (sin la parte gráfica de JavaFX).
+
+### Cómo solucionarlo
+
+#### 1. Instalar las librerías de JavaFX
+Necesitas asegurarte de que los componentes de OpenJFX estén presentes en tu sistema para la versión 11 de Java.
+
+**En Arch / Manjaro:**
+```bash
+sudo pacman -S java11-openjfx
+```
+
+**En Debian Sid:**
+```bash
+sudo apt install openjfx
+```
+
+#### 2. El truco del "hilo perdido" (libgluegen-rt)
+A veces, el módulo de Image Gallery también falla porque intenta cargar librerías nativas para aceleración de video/imagen y no encuentra los enlaces correctos. Si el paso anterior no lo arregla, intenta instalar:
+* Arch: `sudo pacman -S gluegen`
+* Debian: `sudo apt install libgluegen2-rt-java`
+
+#### 3. Forzar la carga de módulos en la configuración
+Si ya instalaste `openjfx` y sigue fallando, es posible que necesitemos decirle a Autopsy dónde están esas librerías. Abre de nuevo tu archivo de confianza:
+
+```bash
+sudo geany /opt/autopsy/autopsy/etc/autopsy.conf
+```
+
+Busca la línea `default_options` y asegúrate de que tenga los parámetros para añadir los módulos de JavaFX. Debería tener algo parecido a esto (añádelo dentro de las comillas si no está):
+`--module-path /usr/share/openjfx/lib --add-modules javafx.controls,javafx.fxml,javafx.media,javafx.swing,javafx.web`
+
+---
+
+### ¿Es vital este módulo?
+Si solo vas a analizar archivos de registro (Registry), líneas de tiempo (Timeline) o búsquedas de palabras clave, puedes **ignorar este error** y Autopsy abrirá igual (aunque sin la galería de fotos tipo "muro").
+
+Sin embargo, si planeas hacer análisis forense de imágenes, sí o sí necesitas que ese `.jar` se active. Prueba instalando el paquete de `openjfx` primero, que es la solución en el 90% de los casos en Linux.
+
+¿Te permite el programa continuar hacia la interfaz principal después de mostrarte ese error, o se cierra completamente?
+
+---
+
+# you asked
+
+¿Qué archivos tiene el paquete java11-openjfx?
+
+---
+
+# gemini response
+
+En tu sistema (que usa la estructura de Arch Linux / Manjaro), el paquete `java11-openjfx` es el encargado de proveer las librerías de JavaFX específicamente vinculadas a la versión 11 del JDK.
+
+Aquí tienes el desglose de lo que instala y dónde lo pone:
+
+### 1. Archivos Jar (Lógica de Java)
+Se instalan en `/usr/lib/jvm/java-11-openjdk/lib/`. Estos son los archivos que Autopsy necesita cargar para que la interfaz (especialmente **Image Gallery**) no falle:
+* `javafx.base.jar`
+* `javafx.controls.jar` (Este es crítico para los botones y menús)
+* `javafx.fxml.jar`
+* `javafx.graphics.jar`
+* `javafx.media.jar` (Para reproducción de video)
+* `javafx.swing.jar` (Para integrar JavaFX dentro de la plataforma NetBeans)
+* `javafx.web.jar` (Para el visor de contenido HTML)
+
+### 2. Librerías Nativas (`.so`)
+Como JavaFX no es solo código Java, también instala binarios compilados para Linux en `/usr/lib/jvm/java-11-openjdk/lib/`:
+* `libglass.so`
+* `libjavafx_font.so`
+* `libjavafx_iio.so` (Manejo de entrada/salida de imágenes)
+* `libprism_common.so` / `libprism_sw.so` (Renderizado de gráficos)
+* `libjfxwebkit.so` (Si está incluido, es el motor de renderizado web pesado)
+
+### 3. Archivos de Propiedades
+* `javafx.properties`: Define la versión y detalles del runtime de JavaFX para que la JVM sepa que están ahí.
+
+---
+
+### Cómo verificar si están bien instalados
+Como eres usuario de la terminal, puedes listar el contenido directamente para confirmar que no falta nada:
+
+```bash
+pacman -Ql java11-openjfx | grep '\.jar$'
+```
+
+**Si después de instalarlo Autopsy sigue sin verlos:**
+A veces el paquete los instala en `/usr/lib/java-openjfx/` en lugar de dentro de la carpeta del JDK 11. Si es así, tendrás que hacer el paso que te mencioné antes: editar el `autopsy.conf` y añadir esta ruta al `--module-path`.
+
+¿Ya probaste a instalarlo con `pacman -S java11-openjfx`? Eso debería resolver el error de **Activation failed** del módulo de imágenes.
+
+---
+
+# you asked
+
+Hice esto y dejó de funcionar. ¿Se puede reparar?
+
+busybox-static cp -vr /usr/lib/jvm/java-26-openjdk/* /usr/lib/jvm/java-11-openjdk
+
+---
+
+# gemini response
+
+¡Ouch! Entiendo lo que intentaste hacer (un "transplante" manual), pero básicamente acabas de crear un **Frankenstein de Java**. 
+
+Al copiar los archivos de la versión 26 sobre la 11 con `cp -vr`, has sobrescrito los binarios (`java`, `javac`), las librerías compartidas (`.so`) y los archivos de configuración de la versión compatible con los de la versión experimental. Como resultado, las firmas de las clases y las librerías nativas ya no coinciden. **Sí, se puede reparar**, pero no intentando deshacer los cambios a mano, sino reinstalando los paquetes para que el gestor de paquetes (pacman) restaure la integridad de los archivos.
+
+Aquí tienes el plan de rescate:
+
+### 1. Limpiar el desastre
+Primero, vamos a borrar esa carpeta que ahora tiene una mezcla inconsistente de archivos. No te preocupes, esto no afecta al Java 26 original que está en su propia ruta.
+
+```bash
+sudo rm -rf /usr/lib/jvm/java-11-openjdk
+```
+
+### 2. Reinstalar los paquetes correctamente
+Ahora pediremos a `pacman` que descargue y coloque cada archivo en su lugar original. Esto restaurará los binarios de la versión 11 y, de paso, aseguramos que JavaFX quede bien integrado.
+
+```bash
+sudo pacman -S jdk11-openjdk java11-openjfx
+```
+
+### 3. Verificar la versión
+Antes de abrir Autopsy, asegúrate de que esa carpeta ahora sí contiene lo que dice ser:
+
+```bash
+/usr/lib/jvm/java-11-openjdk/bin/java -version
+```
+*(Debería devolver algo como `openjdk version "11.0.x"`)*.
+
+---
+
+### ¿Por qué falló el `cp`?
+Para cultura general de tu proyecto **Frankeinux**:
+* **Incompatibilidad de Bytecode:** Los archivos `.jar` de Java 26 están compilados para una versión de clase mucho más alta que la que entiende el entorno de Java 11.
+* **Librerías nativas:** Los archivos `.so` de la versión 26 buscan símbolos en el kernel y en la glibc que podrían no ser compatibles con lo que el motor de la versión 11 espera.
+* **Sobrescritura parcial:** `cp -r` no borra lo que ya estaba si el nombre no coincide exactamente, por lo que dejaste archivos "huérfanos" de la versión 11 mezclados con los de la 26.
+
+**Consejo final:** Una vez que termines la reinstalación, vuelve a verificar tu archivo `/opt/autopsy/autopsy/etc/autopsy.conf`. Si la ruta `jdkhome="/usr/lib/jvm/java-11-openjdk"` sigue ahí, Autopsy debería arrancar perfectamente ahora que los archivos son auténticos de la versión 11.

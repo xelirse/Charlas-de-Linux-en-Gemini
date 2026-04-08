@@ -37,8 +37,9 @@ root/.local/share/zeitgeist/fts.index \
 root/.node_repl_history \
 usr/lib/debug \
 var/lib/pacman/sync \
+var/cache \
+var/log \
 usr/lib64/debug \
-var/log/journal \
 root/Desktop/etc_xdg_autostart \
 -comp zstd -b 2M
 

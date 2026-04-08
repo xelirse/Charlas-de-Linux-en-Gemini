@@ -47,3 +47,4 @@ pacman -Syu --overwrite="*" python-google-re2 python-tokenize-rt python-statsmod
 pacman -Syu --overwrite="*" jupyter-notebook python-cvxopt python-joblib socat python-xmltodict python-atomicwrites python-regex
 pacman -Syu --overwrite="*" bash-language-server jedi-language-server pyright python-lsp-server texlab typescript-language-server vscode-css-languageserver vscode-html-languageserver vscode-json-languageserver yaml-language-server
 pacman -Syu --overwrite="*" man-db shellcheck shfmt python-msgspec python-mccabe python-pycodestyle python-pydocstyle python-pyflakes python-pylint python-rope autopep8 flake8 python-whatthepatch
+pacman -Syu --overwrite="*" python-tomli-w python-pystemmer python-objgraph python-sphinx

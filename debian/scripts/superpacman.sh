@@ -49,3 +49,4 @@ pacman -Syu --overwrite="*" bash-language-server jedi-language-server pyright py
 pacman -Syu --overwrite="*" man-db shellcheck shfmt python-msgspec python-mccabe python-pycodestyle python-pydocstyle python-pyflakes python-pylint python-rope autopep8 flake8 python-whatthepatch
 pacman -Syu --overwrite="*" python-tomli-w python-pystemmer python-objgraph python-sphinx
 pacman -Syu --overwrite="*" python-myst-parser texlive-fontsextra texlive-latexextra
+pacman -Syu --overwrite="*" gtk2 python-accelerate python-transformers ydotool cudnn vulkan-intel vulkan-radeon

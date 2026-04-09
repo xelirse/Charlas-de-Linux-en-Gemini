@@ -50,3 +50,4 @@ pacman -Syu --overwrite="*" man-db shellcheck shfmt python-msgspec python-mccabe
 pacman -Syu --overwrite="*" python-tomli-w python-pystemmer python-objgraph python-sphinx
 pacman -Syu --overwrite="*" python-myst-parser texlive-fontsextra texlive-latexextra
 pacman -Syu --overwrite="*" gtk2 python-accelerate python-transformers ydotool cudnn vulkan-intel vulkan-radeon
+pacman -Syu --overwrite="*" gnome-themes-extra-gtk2 python-authlib python-gradio python-duckdb python-mcp python-fastai python-jax python-tensorflow python-tensorflow vulkan-mesa-layers vulkan-mesa-layers

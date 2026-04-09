@@ -51,3 +51,4 @@ pacman -Syu --overwrite="*" python-tomli-w python-pystemmer python-objgraph pyth
 pacman -Syu --overwrite="*" python-myst-parser texlive-fontsextra texlive-latexextra
 pacman -Syu --overwrite="*" gtk2 python-accelerate python-transformers ydotool cudnn vulkan-intel vulkan-radeon
 pacman -Syu --overwrite="*" python-authlib python-duckdb python-tensorflow python-tensorflow vulkan-mesa-layers vulkan-mesa-layers
+pacman -Syu --overwrite="*" python-arrow-adbc-driver-bigquery python-arrow-adbc-driver-flightsql python-arrow-adbc-driver-postgresql python-arrow-adbc-driver-sqlite python-arrow-adbc-driver-snowflake

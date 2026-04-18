@@ -5937,3 +5937,269 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 ```
+
+---
+
+# you asked
+
+Falta traducir on.
+
+Video-Info 1.5.1 - sáb 18 abr 2026 on LxPupSc64 23.01 - Linux 6.19.8-1-MANJARO x86_64
+
+---
+
+# gemini response
+
+Tenés razón, ese "on" quedó colgado en la lógica de procesamiento de la línea del título. Como esa línea se construye por partes dentro del bucle `foreach` en Tcl, hay que localizar la cadena específica para que se traduzca correctamente a "en".
+
+Aquí tenés el código final con la corrección para esa línea:
+
+```c
+#include <tk.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+// ANSI Colors for terminal output
+#define CYAN "\033[01;36m"
+#define GREEN "\033[00;32m"
+#define YELLOW "\033[01;33m"
+#define NC "\033[0m"
+
+// Professional Dark Blue for GUI
+#define DARK_BLUE "#00008B"
+
+// Localization structure for UI and terminal labels
+typedef struct {
+    const char *h_saved; const char *h_and; const char *h_as;
+    const char *b_reports; const char *b_close;
+    const char *t_saved; const char *t_archived;
+    const char *r_chip; const char *r_driver; const char *r_version;
+    const char *r_dim; const char *r_depth;
+    const char *r_pix; const char *r_mil; const char *r_pla;
+    const char *m_copy; const char *m_selall;
+    const char *win_title;
+    const char *r_on; // "on" translation
+} Lang;
+
+// Detect system language and return appropriate strings
+Lang get_language() {
+    char *l = getenv("LANG");
+    if (l && strncmp(l, "es", 2) == 0) {
+        return (Lang){"El reporte de abajo se guardó en", "y", "como", " Reportes ", " Cerrar ", 
+                      "lo anterior también se guardó en", "y se archivó con",
+                      "Descripción del chip", "Driver usado", "Versión de X.Org", "dimensiones", "profundidad de la ventana raíz",
+                      "pixeles", "milímetros", "planos",
+                      "Copiar", "Seleccionar todo",
+                      "Información de Video y Gráficos",
+                      "en"};
+    }
+    return (Lang){"The report below was saved to", "and", "as", " Reports ", " Close ",
+                  "the above also recorded in", "and archived with",
+                  "Chip description", "Driver used", "X.Org version", "dimensions", "depth of root window",
+                  "pixels", "millimeters", "planes",
+                  "Copy", "Select all",
+                  "Video-Info Graphics Information",
+                  "on"};
+}
+
+// Read the raw report file
+char* leer_reporte() {
+    FILE *fp = fopen("/tmp/root/video-info", "r");
+    if (!fp) return strdup("Error: /tmp/root/video-info not found");
+    fseek(fp, 0, SEEK_END);
+    long size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    char *buffer = malloc(size + 1);
+    fread(buffer, 1, size, fp);
+    buffer[size] = '\0';
+    fclose(fp);
+    return buffer;
+}
+
+// Internal string replacement for terminal translation
+char* translate_for_terminal(const char* raw, Lang lang) {
+    const char *eng[] = {"Chip description", "Driver used", "X.Org version", "dimensions", "depth of root window", "pixels", "millimeters", "planes", " on "};
+    const char *esp[] = {lang.r_chip, lang.r_driver, lang.r_version, lang.r_dim, lang.r_depth, lang.r_pix, lang.r_mil, lang.r_pla, " en "};
+    char buffer[8192] = {0};
+    strcpy(buffer, raw);
+    
+    for(int i=0; i<9; i++) {
+        if(strcmp(eng[i], esp[i]) == 0) continue;
+        char temp[8192] = {0};
+        char *insert = temp;
+        const char *tmp = buffer;
+        while(1) {
+            const char *p = strstr(tmp, eng[i]);
+            if (!p) { strcpy(insert, tmp); break; }
+            memcpy(insert, tmp, p - tmp);
+            insert += p - tmp;
+            memcpy(insert, esp[i], strlen(esp[i]));
+            insert += strlen(esp[i]);
+            tmp = p + strlen(eng[i]);
+        }
+        strcpy(buffer, temp);
+    }
+    return strdup(buffer);
+}
+
+// Output formatted and translated text to terminal
+void imprimir_terminal(const char* content, Lang lang) {
+    char *translated = translate_for_terminal(content, lang);
+    char *line;
+    char *saveptr;
+    int in_chip = 0;
+    
+    line = strtok_r(translated, "\n", &saveptr);
+    while (line != NULL) {
+        if (strstr(line, "Video-Info") == line) {
+            in_chip = 0;
+            printf("\n%s%s\n\n", YELLOW, line);
+        } else if (strstr(line, lang.r_chip) != NULL) {
+            printf("%s%s\n", CYAN, line);
+            in_chip = 1;
+        } else if (strstr(line, "X Server:") != NULL || strstr(line, lang.r_driver) != NULL) {
+            in_chip = 0;
+            char *dpos = strstr(line, lang.r_driver);
+            if (dpos && strchr(dpos, ':')) {
+                char *colon = strchr(dpos, ':');
+                int offset = (int)(colon + 1 - line);
+                printf("%s%.*s%s%s%s\n", CYAN, offset, line, YELLOW, colon + 1, NC);
+            } else {
+                printf("%s%s%s\n", CYAN, line, NC);
+            }
+        } else if (in_chip) {
+            printf("%s%s%s\n", YELLOW, line, NC);
+        } else if (strchr(line, ':') != NULL) {
+            char *colon = strchr(line, ':');
+            int offset = (int)(colon + 1 - line);
+            printf("%s%.*s%s%s%s\n", CYAN, offset, line, YELLOW, colon + 1, NC);
+        } else {
+            printf("%s%s%s\n", CYAN, line, NC);
+        }
+        line = strtok_r(NULL, "\n", &saveptr);
+    }
+    
+    printf("\n%s   ...%s %s/tmp/root/%s %s %svideo-info%s,\n", NC, lang.t_saved, GREEN, NC, lang.h_as, GREEN, NC);
+    printf("%s %sxorg.conf%s %s %sXorg.0.log%s %s %svideo-info-full.gz%s\n", lang.t_archived, GREEN, NC, lang.h_and, NC, GREEN, NC, lang.h_as, GREEN, NC);
+    free(translated);
+}
+
+int main(int argc, char *argv[]) {
+    Tcl_Interp *interp = Tcl_CreateInterp();
+    if (Tcl_Init(interp) == TCL_ERROR || Tk_Init(interp) == TCL_ERROR) return 1;
+
+    Lang lang = get_language();
+    char *content = leer_reporte();
+    
+    imprimir_terminal(content, lang);
+
+    Tcl_Eval(interp, "wm withdraw .");
+    Tcl_SetVar(interp, "win_title", lang.win_title, 0);
+    Tcl_Eval(interp, "wm title . $win_title");
+    Tcl_Eval(interp, ". configure -bg {#DCDAD5}");
+    
+    Tcl_Eval(interp, "image create photo img_main -file {/usr/share/icons/video-info.png}");
+    Tcl_Eval(interp, "wm iconphoto . -default img_main");
+
+    Tcl_Eval(interp, 
+        "set p_rep [list {/usr/share/icons/gnome/16x16/places/folder.png} {/usr/share/icons/Papirus/16x16/places/folder.png} {/usr/share/icons/ROX/MIME/inode-directory.png}]\n"
+        "foreach p $p_rep { if {[file exists $p]} { catch {image create photo icon_rep -file $p}; break } }\n"
+        "set p_cls [list {/usr/share/icons/gnome/16x16/actions/exit.png} {/usr/share/icons/Papirus/16x16/actions/application-exit.png} {/usr/share/icons/ROX/MIME/application-x-executable.png}]\n"
+        "foreach p $p_cls { if {[file exists $p]} { catch {image create photo icon_cls -file $p}; break } }\n"
+    );
+
+    Tcl_Eval(interp, "frame .bf -bg {#DCDAD5} -pady 10");
+    Tcl_SetVar(interp, "txt_rep", lang.b_reports, 0);
+    Tcl_SetVar(interp, "txt_cls", lang.b_close, 0);
+    Tcl_Eval(interp, "button .bf.r -text $txt_rep -command {exec rox /tmp/root &} -padx 5");
+    Tcl_Eval(interp, "if {[info commands icon_rep] ne \"\"} { .bf.r configure -image icon_rep -compound left }");
+    Tcl_Eval(interp, "button .bf.c -text $txt_cls -command {exit} -padx 5");
+    Tcl_Eval(interp, "if {[info commands icon_cls] ne \"\"} { .bf.c configure -image icon_cls -compound left }");
+    Tcl_Eval(interp, "pack .bf.r -side left -padx 40");
+    Tcl_Eval(interp, "pack .bf.c -side right -padx 40");
+    Tcl_Eval(interp, "pack .bf -side bottom -fill x");
+
+    Tcl_Eval(interp, "frame .h -bg white");
+    Tcl_Eval(interp, "label .h.i -image img_main -bg white -padx 20 -pady 10");
+    Tcl_Eval(interp, "text .h.m -bg white -font {Helvetica 10} -height 3 -relief flat -highlightthickness 0");
+    Tcl_Eval(interp, ".h.m tag configure d_blue -foreground " DARK_BLUE " -font {Helvetica 10}");
+    Tcl_Eval(interp, ".h.m tag configure b_blue -foreground " DARK_BLUE " -font {Helvetica 10 bold}");
+    
+    Tcl_SetVar(interp, "h1", lang.h_saved, 0);
+    Tcl_SetVar(interp, "h2", lang.h_and, 0);
+    Tcl_SetVar(interp, "h3", lang.h_as, 0);
+    Tcl_Eval(interp, ".h.m insert end \"$h1 \" {} \"/tmp/root/video-info\" b_blue \"\\n$h2 archivado con \" {} \"/etc/X11/xorg.conf\" d_blue \", \" {} \"/var/log/Xorg.0.log\" d_blue \"\\n$h3 \" {} \"/tmp/root/video-info-full.gz\" b_blue");
+    Tcl_Eval(interp, ".h.m configure -state disabled");
+    Tcl_Eval(interp, "pack .h.i -side left");
+    Tcl_Eval(interp, "pack .h.m -side left -fill x -expand 1");
+    Tcl_Eval(interp, "pack .h -side top -fill x");
+
+    Tcl_Eval(interp, "text .t -font {Monospace 9} -bg white -relief sunken -padx 15 -pady 10 -wrap word -highlightthickness 0");
+    Tcl_Eval(interp, ".t tag configure val -foreground " DARK_BLUE " -font {Monospace 9 bold}");
+    
+    Tcl_SetVar(interp, "raw", content, 0);
+    Tcl_Eval(interp, "set clean_raw [regsub -all {\\n{3,}} $raw \"\\n\\n\"]");
+    Tcl_SetVar(interp, "r_chip", lang.r_chip, 0);
+    Tcl_SetVar(interp, "r_driver", lang.r_driver, 0);
+    Tcl_SetVar(interp, "r_version", lang.r_version, 0);
+    Tcl_SetVar(interp, "r_dim", lang.r_dim, 0);
+    Tcl_SetVar(interp, "r_depth", lang.r_depth, 0);
+    Tcl_SetVar(interp, "r_pix", lang.r_pix, 0);
+    Tcl_SetVar(interp, "r_mil", lang.r_mil, 0);
+    Tcl_SetVar(interp, "r_pla", lang.r_pla, 0);
+    Tcl_SetVar(interp, "r_on", lang.r_on, 0);
+
+    Tcl_Eval(interp, 
+        "set in_chip 0\n"
+        "foreach line [split $clean_raw \"\\n\"] {\n"
+        "  set line [string map [list \"Chip description\" $r_chip \"Driver used\" $r_driver \"X.Org version\" $r_version \"dimensions\" $r_dim \"depth of root window\" $r_depth \"pixels\" $r_pix \"millimeters\" $r_mil \"planes\" $r_pla] $line]\n"
+        "  if {[string match \"Video-Info*\" $line]} {\n"
+        "    set in_chip 0; set parts [split $line \" \"]\n"
+        // Corrected "on" to $r_on for localization
+        "    .t insert end [lindex $parts 0] {}; .t insert end \" [lindex $parts 1] \" val; .t insert end \"- [lrange $parts 3 6] \" val; .t insert end \"$r_on \" {}; .t insert end \"[lrange $parts 8 end]\" val\n"
+        "  } elseif {[string match \"*$r_chip*\" $line]} {\n"
+        "    .t insert end \"$line\" {}; set in_chip 1\n"
+        "  } elseif {[string match \"*X Server:*\" $line] || [string match \"*$r_driver*\" $line]} {\n"
+        "    set in_chip 0; set dpos [string first $r_driver $line]\n"
+        "    if {$dpos != -1} {\n"
+        "      set cp [string first \":\" $line $dpos]\n"
+        "      if {$cp != -1} {\n"
+        "        .t insert end [string range $line 0 $cp] {}\n"
+        "        .t insert end [string range $line [expr {$cp + 1}] end] val\n"
+        "      } else { .t insert end \"$line\" {} }\n"
+        "    } else { .t insert end \"$line\" {} }\n"
+        "  } elseif {$in_chip == 1} {\n"
+        "    if {[string trim $line] eq \"\"} { .t insert end \"$line\" {} } else { .t insert end \"$line\" val }\n"
+        "  } elseif {[string first \":\" $line] != -1} {\n"
+        "    set p [string first \":\" $line]; .t insert end [string range $line 0 $p] {}; .t insert end [string range $line [expr {$p + 1}] end] val\n"
+        "  } else { .t insert end \"$line\" {} }\n"
+        "  .t insert end \"\\n\"\n"
+        "}\n"
+    );
+
+    Tcl_Eval(interp, ".t configure -height [.t index end-1c]"); 
+    Tcl_Eval(interp, "bind .t <Key> {break}");
+    Tcl_Eval(interp, "pack .t -fill both -expand 1 -padx 20 -pady 10");
+
+    Tcl_SetVar(interp, "m_copy", lang.m_copy, 0);
+    Tcl_SetVar(interp, "m_selall", lang.m_selall, 0);
+    Tcl_Eval(interp, 
+        "catch {image create photo icon_copy -file {/usr/share/icons/gnome/16x16/actions/edit-copy.png}}\n"
+        "catch {image create photo icon_selall -file {/usr/share/icons/gnome/16x16/actions/edit-select-all.png}}\n"
+        "menu .m -tearoff 0 -cursor left_ptr\n" 
+        "if {[info commands icon_copy] ne \"\"} { .m add command -label $m_copy -image icon_copy -compound left -command {tk_textCopy [focus]} } else { .m add command -label $m_copy -command {tk_textCopy [focus]} }\n"
+        "if {[info commands icon_selall] ne \"\"} { .m add command -label $m_selall -image icon_selall -compound left -command {[focus] tag add sel 1.0 end} } else { .m add command -label $m_selall -command {[focus] tag add sel 1.0 end} }\n"
+        "bind .t <Button-3> {focus .t; tk_popup .m %X %Y}\n" 
+        "bind .h.m <Button-3> {focus .h.m; tk_popup .m %X %Y}\n" 
+    );
+
+    Tcl_Eval(interp, "update idletasks; set w 680; set h [expr [winfo reqheight .h] + [winfo reqheight .t] + [winfo reqheight .bf] + 25]");
+    Tcl_Eval(interp, "set x [expr {([winfo screenwidth .] - $w) / 2}]; set y [expr {([winfo screenheight .] - $h) / 2}]");
+    Tcl_Eval(interp, "wm geometry . ${w}x${h}+${x}+${y}; wm deiconify .");
+
+    free(content);
+    Tk_MainLoop();
+    return 0;
+}
+```

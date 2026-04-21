@@ -6724,3 +6724,188 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 ```
+
+---
+
+# you asked
+
+Dice on (una palabra en inglés).
+
+Los comentarios del código los quiero en inglés pero // y no /**/.
+
+---
+
+# gemini response
+
+He corregido la traducción de la interfaz para que sea consistente en español y he actualizado el estilo de los comentarios según tus preferencias: usando `//` y redactándolos en inglés.
+
+También me aseguré de que la lógica del ícono y el atajo `Control+A` sea robusta.
+
+```c
+#include <tk.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <locale.h>
+
+// ANSI Terminal Colors (Optimized for dark background)
+#define C_ORANGE  "\033[01;38;5;208m" 
+#define C_TEAL    "\033[01;36m"        
+#define C_GREEN   "\033[01;32m"        
+#define C_WHITE   "\033[01;37m"        
+#define C_RESET   "\033[0m"
+
+// GUI Color Palette
+#define G_BG_GRAY  "#DCDAD5"
+#define COLOR_1    "#008080"
+#define COLOR_2    "#0000FF"
+#define COLOR_3    "#008000"
+#define COLOR_4    "#00008B"
+#define COLOR_5    "#FF8C00"
+
+typedef enum { EN, ES, ES_AR } lang_t;
+
+lang_t get_system_lang() {
+    char *l = getenv("LANG");
+    if (l) {
+        if (strncmp(l, "en", 2) == 0 || strcmp(l, "C") == 0) return EN;
+        if (strstr(l, "es_AR")) return ES_AR;
+        if (strstr(l, "es")) return ES;
+    }
+    return EN;
+}
+
+int main(int argc, char *argv[]) {
+    setlocale(LC_ALL, "");
+    lang_t l = get_system_lang();
+
+    // Technical data
+    char chip1_lbl[] = " 5.0 VGA compatible controller: ";
+    char chip1_val[] = "Advanced Micro Devices, Inc. [AMD/ATI] RS780C [Radeon 3100]";
+    char chip2_lbl[] = " 0.0 VGA compatible controller: ";
+    char chip2_val[] = "Advanced Micro Devices, Inc. [AMD/ATI] Turks XT [Radeon HD 6670/7670]";
+    char driver[] = "radeon";
+    char xorg_ver[] = "21.1.22"; 
+    char dims_val[] = "1280x1024 pixeles (338x270 milímetros)";
+    char depth_val[] = "24 planos";
+
+    const char *date_str = (l == EN) ? "Sat Apr 18 2026" : "sáb 18 abr 2026";
+    const char *p_txt = "/tmp/root/video-info";
+    const char *p_conf = "xorg.conf y Xorg.0.log";
+    const char *p_gz = "video-info-full.gz";
+
+    // --- TERMINAL OUTPUT ---
+    // Fix: replaced "on" with "en" for Spanish consistency
+    printf("%sVideo-Info 1.5.1%s - %s%s%s en %sLxPupSc64 23.01%s - %sLinux 6.19.8-1-MANJARO x86_64%s\n\n", 
+           C_ORANGE, C_WHITE, C_ORANGE, date_str, C_WHITE, C_ORANGE, C_WHITE, C_ORANGE, C_RESET);
+    
+    printf("%sDescripción del chip:%s\n", C_TEAL, C_RESET);
+    printf("%s%s%s%s\n", C_GREEN, chip1_lbl, C_WHITE, chip1_val);
+    printf("%s%s%s%s\n\n", C_GREEN, chip2_lbl, C_WHITE, chip2_val);
+    
+    printf("%sServidor X: %sXorg  %sControlador usado: %s%s%s\n", C_TEAL, C_WHITE, C_TEAL, C_WHITE, driver, C_RESET);
+    printf("%sVersión de X.Org: %s%s%s\n", C_TEAL, C_WHITE, xorg_ver, C_RESET);
+    printf("%s  dimensiones:      %s%s%s\n", C_TEAL, C_WHITE, dims_val, C_RESET);
+    printf("%s  profundidad de la ventana raíz:  %s%s%s\n\n", C_TEAL, C_WHITE, depth_val, C_RESET);
+    
+    printf("%s...lo anterior también se guardó en %s%s%s como %svideo-info%s,\n", C_TEAL, C_GREEN, p_txt, C_TEAL, C_GREEN, C_TEAL);
+    printf("y se archivó con %s%s%s como %s%s%s\n", C_GREEN, p_conf, C_TEAL, C_GREEN, p_gz, C_RESET);
+
+    // --- GUI INTERFACE ---
+    Tcl_Interp *interp = Tcl_CreateInterp();
+    Tcl_Init(interp); Tk_Init(interp);
+    Tcl_Eval(interp, "wm withdraw .; wm title . \"Información de Video\"; . configure -bg {" G_BG_GRAY "}");
+    
+    // Load main icon and set it as window icon
+    Tcl_Eval(interp, "catch {image create photo img_main -file {/usr/share/icons/video-info.png}; wm iconphoto . -default img_main}");
+    
+    // Load button and menu icons
+    Tcl_Eval(interp, "set ic_rep [image create photo]; catch {$ic_rep read /usr/share/icons/gnome/16x16/places/folder.png}");
+    Tcl_Eval(interp, "set ic_cls [image create photo]; catch {$ic_cls read /usr/share/icons/gnome/16x16/actions/exit.png}");
+    Tcl_Eval(interp, "set ic_cpy [image create photo]; catch {$ic_cpy read /usr/share/icons/gnome/16x16/actions/edit-copy.png}");
+    Tcl_Eval(interp, "set ic_all [image create photo]; catch {$ic_all read /usr/share/icons/gnome/16x16/actions/edit-select-all.png}");
+    
+    // Global key binding for Select All (Control+A)
+    Tcl_Eval(interp, "bind . <Control-a> {set w [focus]; if {$w ne \"\"} {$w tag add sel 1.0 end}}");
+
+    // Context menu (Right-click)
+    Tcl_Eval(interp, "menu .popup -tearoff 0 -cursor left_ptr");
+    Tcl_Eval(interp, ".popup add command -label Copiar -image $ic_cpy -compound left -command {event generate [focus] <<Copy>>}");
+    Tcl_Eval(interp, ".popup add command -label \"Seleccionar todo\" -image $ic_all -compound left -command {set w [focus]; if {$w ne \"\"} {$w tag add sel 1.0 end}}");
+
+    // Header frame
+    Tcl_Eval(interp, "frame .h -bg {" G_BG_GRAY "} -padx 10 -pady 10; pack .h -side top -fill x");
+    Tcl_Eval(interp, "label .h.i -image img_main -bg {" G_BG_GRAY "}; pack .h.i -side left");
+    Tcl_Eval(interp, "text .h.m -bg {" G_BG_GRAY "} -font {Helvetica 10} -height 3 -relief flat -highlightthickness 0 -padx 10 -cursor left_ptr");
+    Tcl_Eval(interp, "pack .h.m -side left -fill x -expand 1");
+    Tcl_Eval(interp, "bind .h.m <Button-3> {focus %W; tk_popup .popup %X %Y}");
+    
+    Tcl_Eval(interp, ".h.m tag configure path -font {Helvetica 10 bold} -foreground \"" COLOR_4 "\"");
+    Tcl_SetVar(interp, "hp1", p_txt, 0);
+    Tcl_SetVar(interp, "hp2", "/etc/X11/xorg.conf, /var/log/Xorg.0.log", 0);
+    Tcl_SetVar(interp, "hp3", p_gz, 0);
+    Tcl_Eval(interp, ".h.m insert end \"El reporte de abajo se guardó en \"; .h.m insert end $hp1 path; "
+                     ".h.m insert end \"\\ny se archivó con \"; .h.m insert end $hp2 path; "
+                     ".h.m insert end \"\\ncomo \"; .h.m insert end $hp3 path");
+
+    // Bottom button frame
+    Tcl_Eval(interp, "frame .bf -bg {" G_BG_GRAY "} -pady 10; pack .bf -side bottom -fill x");
+    Tcl_Eval(interp, "button .bf.r -text \" Reportes \" -image $ic_rep -compound left -padx 10 -command {exec rox /tmp/root &}");
+    Tcl_Eval(interp, "button .bf.c -text \" Cerrar \" -image $ic_cls -compound left -padx 10 -command exit");
+    Tcl_Eval(interp, "pack .bf.r -side left -padx 20; pack .bf.c -side right -padx 20");
+
+    // Main text frame
+    Tcl_Eval(interp, "frame .f_txt -bg white -bd 1 -relief sunken; pack .f_txt -side top -fill both -expand 1 -padx 10 -pady 5");
+    Tcl_Eval(interp, "text .f_txt.t -font {Monospace 9} -bg white -relief flat -wrap none -cursor left_ptr -highlightthickness 0 -padx 5 -pady 5");
+    Tcl_Eval(interp, "pack .f_txt.t -side top -fill both -expand 1");
+    Tcl_Eval(interp, "bind .f_txt.t <Button-3> {focus %W; tk_popup .popup %X %Y}");
+
+    // GUI Tags configuration
+    Tcl_Eval(interp, ".f_txt.t tag configure c1 -foreground \"" COLOR_1 "\"");
+    Tcl_Eval(interp, ".f_txt.t tag configure c2 -foreground \"" COLOR_2 "\"");
+    Tcl_Eval(interp, ".f_txt.t tag configure c3 -foreground \"" COLOR_3 "\"");
+    Tcl_Eval(interp, ".f_txt.t tag configure c4 -foreground \"" COLOR_4 "\" -font {Monospace 9 bold}");
+    Tcl_Eval(interp, ".f_txt.t tag configure c5 -foreground \"" COLOR_5 "\" -font {Monospace 9 bold}");
+
+    Tcl_SetVar(interp, "date", date_str, 0);
+    Tcl_SetVar(interp, "c1l", chip1_lbl, 0); Tcl_SetVar(interp, "c1v", chip1_val, 0);
+    Tcl_SetVar(interp, "c2l", chip2_lbl, 0); Tcl_SetVar(interp, "c2v", chip2_val, 0);
+    Tcl_SetVar(interp, "drv", driver, 0);     Tcl_SetVar(interp, "xv", xorg_ver, 0);
+    Tcl_SetVar(interp, "dm", dims_val, 0);   Tcl_SetVar(interp, "dp", depth_val, 0);
+
+    // GUI text insertion (Fixed "en" translation)
+    Tcl_Eval(interp, 
+        ".f_txt.t insert end \"Video-Info 1.5.1\" c5; .f_txt.t insert end \"  -  \" c4\n"
+        ".f_txt.t insert end \"$date\" c5; .f_txt.t insert end \" en \" c4\n"
+        ".f_txt.t insert end \"LxPupSc64 23.01\" c5; .f_txt.t insert end \" - \" c4\n"
+        ".f_txt.t insert end \"Linux 6.19.8-1-MANJARO x86_64\\n\\n\" c5\n"
+
+        ".f_txt.t insert end \"Descripción del chip:\\n\" c1\n"
+        ".f_txt.t insert end \"$c1l\" c3; .f_txt.t insert end \"$c1v\\n\" c4\n"
+        ".f_txt.t insert end \"$c2l\" c3; .f_txt.t insert end \"$c2v\\n\\n\" c4\n"
+
+        ".f_txt.t insert end \"Servidor X: \" c1; .f_txt.t insert end \"Xorg  \" c4\n"
+        ".f_txt.t insert end \"Controlador usado: \" c1; .f_txt.t insert end \"$drv\\n\" c4\n"
+
+        ".f_txt.t insert end \"Versión de X.Org: \" c1; .f_txt.t insert end \"$xv\\n\" c4\n"
+        ".f_txt.t insert end \"  dimensiones:      \" c2; .f_txt.t insert end \"$dm\\n\" c4\n"
+        ".f_txt.t insert end \"  profundidad de la ventana raíz:  \" c2; .f_txt.t insert end \"$dp\\n\" c4\n"
+    );
+
+    // Dynamic geometry and window placement
+    Tcl_Eval(interp, 
+        "set nl [expr {int([.f_txt.t index end-1c])}]\n"
+        ".f_txt.t configure -height $nl\n"
+        "update idletasks\n"
+        "set w [expr {[winfo reqwidth .] + 20}]\n"
+        "set h [winfo reqheight .]\n"
+        "set x [expr {([winfo screenwidth .] - $w) / 2}]\n"
+        "set y [expr {([winfo screenheight .] - $h) / 2}]\n"
+        "wm geometry . ${w}x${h}+${x}+${y}\n"
+        "wm deiconify .\n"
+    );
+
+    Tk_MainLoop();
+    return 0;
+}
+```

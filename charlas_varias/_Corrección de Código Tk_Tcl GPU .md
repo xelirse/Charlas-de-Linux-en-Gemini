@@ -7482,3 +7482,197 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 ```
+
+---
+
+# you asked
+
+Me refería a la fecha actual. Quiero con la hora, minutos y segundos.
+
+Video-Info 1.5.1 - sáb 18 abr 2026 en LxPupSc64 23.01 - Linux 6.19.8-1-MANJARO x86_64
+
+---
+
+# gemini response
+
+Para obtener la fecha y hora exacta del sistema en tiempo real, necesitamos usar la librería `<time.h>`. He modificado el código para que obtenga el `timestamp` actual y lo formatee exactamente como lo pediste, incluyendo horas, minutos y segundos.
+
+Además, he unificado el formato de la fecha tanto para la terminal como para la interfaz, asegurándome de que ambos muestren la información sincronizada al momento de ejecutar el programa.
+
+```c
+#include <tk.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <locale.h>
+#include <time.h>
+
+// ANSI Terminal Colors
+#define C_ORANGE  "\033[01;38;5;208m" 
+#define C_TEAL    "\033[01;36m"        // Main labels
+#define C_YELLOW  "\033[01;33m"        // Secondary labels
+#define C_GREEN   "\033[01;32m"        
+#define C_WHITE   "\033[01;37m"        // Values
+#define C_RESET   "\033[0m"
+
+// GUI Color Palette
+#define G_BG_GRAY  "#DCDAD5"
+#define COLOR_1    "#008080"
+#define COLOR_2    "#0000FF"
+#define COLOR_3    "#008000"
+#define COLOR_4    "#00008B"
+#define COLOR_5    "#FF8C00"
+
+// Function to get current date and time formatted
+void get_current_datetime(char *buffer, size_t size) {
+    time_t t = time(NULL);
+    struct tm *tm_info = localtime(&t);
+    // Format: DayName DD Mon YYYY HH:MM:SS (e.g., sáb 18 abr 2026 21:15:05)
+    strftime(buffer, size, "%a %d %b %Y %H:%M:%S", tm_info);
+}
+
+void save_report(const char *path, const char *content) {
+    FILE *f = fopen(path, "w");
+    if (f) {
+        fprintf(f, "%s", content);
+        fclose(f);
+    }
+}
+
+int main(int argc, char *argv[]) {
+    setlocale(LC_ALL, "");
+    
+    char datetime[64];
+    get_current_datetime(datetime, sizeof(datetime));
+
+    // Technical data
+    char chip1_lbl[] = " 5.0 VGA compatible controller:  ";
+    char chip1_val[] = "Advanced Micro Devices, Inc. [AMD/ATI] RS780C [Radeon 3100]";
+    char chip2_lbl[] = " 0.0 VGA compatible controller:  ";
+    char chip2_val[] = "Advanced Micro Devices, Inc. [AMD/ATI] Turks XT [Radeon HD 6670/7670]";
+    char driver[] = "radeon";
+    char xorg_ver[] = "21.1.22"; 
+    char dims_val[] = "1280x1024 pixeles (338x270 milímetros)";
+    char depth_val[] = "24 planos";
+
+    const char *p_txt = "/tmp/root/video-info";
+    const char *p_conf = "xorg.conf y Xorg.0.log";
+    const char *p_gz = "/tmp/root/video-info-full.gz";
+
+    // Prepare content for the file
+    char file_content[2048];
+    snprintf(file_content, sizeof(file_content), 
+             "Video-Info 1.5.1 - %s\n\n"
+             "Descripción del chip:\n%s%s\n%s%s\n\n"
+             "Servidor X: Xorg  Controlador: %s\n"
+             "Versión X.Org: %s\n"
+             "Dimensiones: %s\n"
+             "Profundidad: %s\n",
+             datetime, chip1_lbl, chip1_val, chip2_lbl, chip2_val, driver, xorg_ver, dims_val, depth_val);
+
+    save_report(p_txt, file_content);
+    system("tar -czf /tmp/root/video-info-full.gz /etc/X11/xorg.conf /var/log/Xorg.0.log /tmp/root/video-info 2>/dev/null");
+
+    // --- TERMINAL OUTPUT ---
+    printf("%sVideo-Info 1.5.1%s - %s%s%s en %sLxPupSc64 23.01%s - %sLinux 6.19.8-1-MANJARO x86_64%s\n\n", 
+           C_ORANGE, C_WHITE, C_ORANGE, datetime, C_WHITE, C_ORANGE, C_WHITE, C_ORANGE, C_RESET);
+    
+    printf("%sDescripción del chip:  %s\n", C_TEAL, C_RESET);
+    printf("%s%s%s%s\n", C_GREEN, chip1_lbl, C_WHITE, chip1_val);
+    printf("%s%s%s%s\n\n", C_GREEN, chip2_lbl, C_WHITE, chip2_val);
+    
+    printf("%sServidor X:  %sXorg  %sControlador usado:  %s%s%s\n", C_TEAL, C_WHITE, C_TEAL, C_WHITE, driver, C_RESET);
+    printf("%sVersión de X.Org:  %s%s%s\n", C_TEAL, C_WHITE, xorg_ver, C_RESET);
+    printf("%s  dimensiones:  %s%s%s\n", C_YELLOW, C_WHITE, dims_val, C_RESET);
+    printf("%s  profundidad de la ventana raíz:  %s%s%s\n\n", C_YELLOW, C_WHITE, depth_val, C_RESET);
+    
+    printf("%s...lo anterior también se guardó en  %s%s%s  como  %svideo-info%s,\n", C_TEAL, C_GREEN, p_txt, C_TEAL, C_GREEN, C_TEAL);
+    printf("y se archivó con  %s%s%s  como  %svideo-info-full.gz%s\n", C_GREEN, p_conf, C_TEAL, C_GREEN, C_RESET);
+
+    // --- GUI INTERFACE ---
+    Tcl_Interp *interp = Tcl_CreateInterp();
+    Tcl_Init(interp); Tk_Init(interp);
+    Tcl_Eval(interp, "wm withdraw .; wm title . \"Información de Video\"; . configure -bg {" G_BG_GRAY "}");
+    
+    Tcl_Eval(interp, "catch {image create photo img_main -file {/usr/share/icons/video-info.png}; wm iconphoto . -default img_main}");
+    Tcl_Eval(interp, "set ic_rep [image create photo]; catch {$ic_rep read /usr/share/icons/gnome/16x16/places/folder.png}");
+    Tcl_Eval(interp, "set ic_cls [image create photo]; catch {$ic_cls read /usr/share/icons/gnome/16x16/actions/exit.png}");
+    Tcl_Eval(interp, "set ic_cpy [image create photo]; catch {$ic_cpy read /usr/share/icons/gnome/16x16/actions/edit-copy.png}");
+    Tcl_Eval(interp, "set ic_all [image create photo]; catch {$ic_all read /usr/share/icons/gnome/16x16/actions/edit-select-all.png}");
+    
+    Tcl_Eval(interp, "bind . <Control-a> {set w [focus]; if {$w ne \"\"} {$w tag add sel 1.0 end}}");
+
+    Tcl_Eval(interp, "menu .popup -tearoff 0 -cursor left_ptr");
+    Tcl_Eval(interp, ".popup add command -label Copiar -image $ic_cpy -compound left -command {event generate [focus] <<Copy>>}");
+    Tcl_Eval(interp, ".popup add command -label \"Seleccionar todo\" -image $ic_all -compound left -command {set w [focus]; if {$w ne \"\"} {$w tag add sel 1.0 end}}");
+
+    Tcl_Eval(interp, "frame .h -bg {" G_BG_GRAY "} -padx 10 -pady 10; pack .h -side top -fill x");
+    Tcl_Eval(interp, "label .h.i -image img_main -bg {" G_BG_GRAY "}; pack .h.i -side left");
+    Tcl_Eval(interp, "text .h.m -bg {" G_BG_GRAY "} -font {Helvetica 10} -height 3 -relief flat -highlightthickness 0 -padx 10 -cursor left_ptr");
+    Tcl_Eval(interp, "pack .h.m -side left -fill x -expand 1");
+    Tcl_Eval(interp, "bind .h.m <Button-3> {focus %W; tk_popup .popup %X %Y}");
+    
+    Tcl_Eval(interp, ".h.m tag configure path -font {Helvetica 10 bold} -foreground \"" COLOR_4 "\"");
+    Tcl_SetVar(interp, "hp1", p_txt, 0);
+    Tcl_SetVar(interp, "hp2", "/etc/X11/xorg.conf, /var/log/Xorg.0.log", 0);
+    Tcl_SetVar(interp, "hp3", "video-info-full.gz", 0);
+    Tcl_Eval(interp, ".h.m insert end \"El reporte de abajo se guardó en  \"; .h.m insert end $hp1 path; "
+                     ".h.m insert end \"\\ny se archivó con  \"; .h.m insert end $hp2 path; "
+                     ".h.m insert end \"\\ncomo  \"; .h.m insert end $hp3 path");
+
+    Tcl_Eval(interp, "frame .bf -bg {" G_BG_GRAY "} -pady 10; pack .bf -side bottom -fill x");
+    Tcl_Eval(interp, "button .bf.r -text \" Reportes \" -image $ic_rep -compound left -padx 10 -command {exec rox /tmp/root &}");
+    Tcl_Eval(interp, "button .bf.c -text \" Cerrar \" -image $ic_cls -compound left -padx 10 -command exit");
+    Tcl_Eval(interp, "pack .bf.r -side left -padx 20; pack .bf.c -side right -padx 20");
+
+    Tcl_Eval(interp, "frame .f_txt -bg white -bd 1 -relief sunken; pack .f_txt -side top -fill both -expand 1 -padx 10 -pady 5");
+    Tcl_Eval(interp, "text .f_txt.t -font {Monospace 9} -bg white -relief flat -wrap none -cursor left_ptr -highlightthickness 0 -padx 5 -pady 5");
+    Tcl_Eval(interp, "pack .f_txt.t -side top -fill both -expand 1");
+    Tcl_Eval(interp, "bind .f_txt.t <Button-3> {focus %W; tk_popup .popup %X %Y}");
+
+    Tcl_Eval(interp, ".f_txt.t tag configure c1 -foreground \"" COLOR_1 "\"");
+    Tcl_Eval(interp, ".f_txt.t tag configure c2 -foreground \"" COLOR_2 "\"");
+    Tcl_Eval(interp, ".f_txt.t tag configure c3 -foreground \"" COLOR_3 "\"");
+    Tcl_Eval(interp, ".f_txt.t tag configure c4 -foreground \"" COLOR_4 "\" -font {Monospace 9 bold}");
+    Tcl_Eval(interp, ".f_txt.t tag configure c5 -foreground \"" COLOR_5 "\" -font {Monospace 9 bold}");
+
+    Tcl_SetVar(interp, "dt", datetime, 0);
+    Tcl_SetVar(interp, "c1l", chip1_lbl, 0); Tcl_SetVar(interp, "c1v", chip1_val, 0);
+    Tcl_SetVar(interp, "c2l", chip2_lbl, 0); Tcl_SetVar(interp, "c2v", chip2_val, 0);
+    Tcl_SetVar(interp, "drv", driver, 0);     Tcl_SetVar(interp, "xv", xorg_ver, 0);
+    Tcl_SetVar(interp, "dm", dims_val, 0);   Tcl_SetVar(interp, "dp", depth_val, 0);
+
+    Tcl_Eval(interp, 
+        ".f_txt.t insert end \"Video-Info 1.5.1\" c5; .f_txt.t insert end \"  -  \" c4\n"
+        ".f_txt.t insert end \"$dt\" c5; .f_txt.t insert end \" en \" c4\n"
+        ".f_txt.t insert end \"LxPupSc64 23.01\" c5; .f_txt.t insert end \" - \" c4\n"
+        ".f_txt.t insert end \"Linux 6.19.8-1-MANJARO x86_64\\n\\n\" c5\n"
+
+        ".f_txt.t insert end \"Descripción del chip:  \\n\" c1\n"
+        ".f_txt.t insert end \"$c1l\" c3; .f_txt.t insert end \"$c1v\\n\" c4\n"
+        ".f_txt.t insert end \"$c2l\" c3; .f_txt.t insert end \"$c2v\\n\\n\" c4\n"
+
+        ".f_txt.t insert end \"Servidor X:  \" c1; .f_txt.t insert end \"Xorg  \" c4\n"
+        ".f_txt.t insert end \"Controlador usado:  \" c1; .f_txt.t insert end \"$drv\\n\" c4\n"
+
+        ".f_txt.t insert end \"Versión de X.Org:  \" c1; .f_txt.t insert end \"$xv\\n\" c4\n"
+        ".f_txt.t insert end \"  dimensiones:  \" c2; .f_txt.t insert end \"$dm\\n\" c4\n"
+        ".f_txt.t insert end \"  profundidad de la ventana raíz:  \" c2; .f_txt.t insert end \"$dp\\n\" c4\n"
+    );
+
+    Tcl_Eval(interp, 
+        "set nl [expr {int([.f_txt.t index end-1c])}]\n"
+        ".f_txt.t configure -height $nl\n"
+        "update idletasks\n"
+        "set w [expr {[winfo reqwidth .] + 20}]\n"
+        "set h [winfo reqheight .]\n"
+        "set x [expr {([winfo screenwidth .] - $w) / 2}]\n"
+        "set y [expr {([winfo screenheight .] - $h) / 2}]\n"
+        "wm geometry . ${w}x${h}+${x}+${y}\n"
+        "wm deiconify .\n"
+    );
+
+    Tk_MainLoop();
+    return 0;
+}
+```

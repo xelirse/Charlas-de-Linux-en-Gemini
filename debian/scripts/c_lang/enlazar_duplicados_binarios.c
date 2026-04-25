@@ -7,11 +7,13 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
+#include <libgen.h>
 
 #define HASH_SIZE 1024
 
 typedef struct FileNode {
     char *path;
+    char *name;
     off_t size;
     struct FileNode *next;
 } FileNode;
@@ -52,11 +54,11 @@ void index_base_directory(const char *dir_path) {
     while ((entry = readdir(dir)) != NULL) {
         char full_path[PATH_MAX];
         snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
-        // lstat + S_ISREG para ignorar enlaces simbólicos
         if (lstat(full_path, &st) == 0 && S_ISREG(st.st_mode)) {
             unsigned int h = hash_size(st.st_size);
             FileNode *node = malloc(sizeof(FileNode));
             node->path = strdup(full_path);
+            node->name = strdup(entry->d_name);
             node->size = st.st_size;
             node->next = hash_table[h];
             hash_table[h] = node;
@@ -120,20 +122,21 @@ void process_secondary_directory(const char *dir_path, int dry_run) {
             while (current) {
                 if (current->size == st.st_size) {
                     if (are_files_identical(current->path, full_path, st.st_size)) {
-                        // Limpiamos la línea de progreso para imprimir el comando
                         printf("\r\e[K");
+                        
+                        // Construcción de la ruta relativa: de /usr/sbin/ a /usr/bin/ es ../bin/
+                        char relative_target[PATH_MAX];
+                        snprintf(relative_target, sizeof(relative_target), "../bin/%s", current->name);
+
                         if (dry_run) {
-                            // Imprime exactamente el comando solicitado
                             printf("ln -svfr %s %s\n", current->path, full_path);
                         } else {
-                            // En ejecución real, reemplaza el archivo por el enlace
                             if (unlink(full_path) == 0) {
-                                if (symlink(current->path, full_path) == 0) {
-                                    printf("'%s' -> '%s'\n", full_path, current->path);
+                                if (symlink(relative_target, full_path) == 0) {
+                                    printf("ln -svfr %s %s\n", current->path, full_path);
                                 }
                             }
                         }
-                        // Redibujamos la línea de progreso
                         printf("%s", linea_progreso);
                         fflush(stdout);
                         break; 
@@ -154,9 +157,7 @@ int main() {
 
     int dry_run = 1; // 1 para simulación, 0 para ejecución real
     
-    if (dry_run) {
-        printf("--- modo simulación activo ---\n");
-    }
+    if (dry_run) printf("--- modo simulación activo ---\n");
 
     index_base_directory("/usr/bin");
     process_secondary_directory("/usr/sbin", dry_run);

@@ -52,6 +52,7 @@ void index_base_directory(const char *dir_path) {
     while ((entry = readdir(dir)) != NULL) {
         char full_path[PATH_MAX];
         snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
+        // lstat + S_ISREG para ignorar enlaces simbólicos
         if (lstat(full_path, &st) == 0 && S_ISREG(st.st_mode)) {
             unsigned int h = hash_size(st.st_size);
             FileNode *node = malloc(sizeof(FileNode));
@@ -89,6 +90,8 @@ void process_secondary_directory(const char *dir_path, int dry_run) {
 
     if (!dir || total == 0) return;
 
+    char linea_progreso[128];
+
     while ((entry = readdir(dir)) != NULL) {
         char full_path[PATH_MAX];
         snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, entry->d_name);
@@ -96,10 +99,10 @@ void process_secondary_directory(const char *dir_path, int dry_run) {
         if (lstat(full_path, &st) == 0 && S_ISREG(st.st_mode)) {
             actual++;
             time_t ahora = time(NULL);
-            double transcurrido = difftime(ahora, inicio);
             
             char fecha_fin[64] = "calculando...";
             if (actual > 1) {
+                double transcurrido = difftime(ahora, inicio);
                 double segundos_restantes = (transcurrido / actual) * (total - actual);
                 time_t t_fin = ahora + (time_t)segundos_restantes;
                 struct tm *info_fin = localtime(&t_fin);
@@ -107,8 +110,9 @@ void process_secondary_directory(const char *dir_path, int dry_run) {
             }
 
             int porcentaje = (int)((actual * 100) / total);
-            printf("\r\e[Kprocesando: [%3d%%] (%ld/%ld) - fin estimado: %s", 
+            sprintf(linea_progreso, "\r\e[Kprocesando: [%3d%%] (%ld/%ld) - fin estimado: %s", 
                    porcentaje, actual, total, fecha_fin);
+            printf("%s", linea_progreso);
             fflush(stdout);
 
             unsigned int h = hash_size(st.st_size);
@@ -116,11 +120,22 @@ void process_secondary_directory(const char *dir_path, int dry_run) {
             while (current) {
                 if (current->size == st.st_size) {
                     if (are_files_identical(current->path, full_path, st.st_size)) {
-                        printf("\r\e[KDuplicado: %s -> %s\n", full_path, current->path);
-                        if (!dry_run) {
-                            unlink(full_path);
-                            symlink(current->path, full_path);
+                        // Limpiamos la línea de progreso para imprimir el comando
+                        printf("\r\e[K");
+                        if (dry_run) {
+                            // Imprime exactamente el comando solicitado
+                            printf("ln -svfr %s %s\n", current->path, full_path);
+                        } else {
+                            // En ejecución real, reemplaza el archivo por el enlace
+                            if (unlink(full_path) == 0) {
+                                if (symlink(current->path, full_path) == 0) {
+                                    printf("'%s' -> '%s'\n", full_path, current->path);
+                                }
+                            }
                         }
+                        // Redibujamos la línea de progreso
+                        printf("%s", linea_progreso);
+                        fflush(stdout);
                         break; 
                     }
                 }
@@ -133,11 +148,16 @@ void process_secondary_directory(const char *dir_path, int dry_run) {
 
 int main() {
     if (geteuid() != 0) {
-        fprintf(stderr, "Ejecutar como root.\n");
+        fprintf(stderr, "Error: Se requieren privilegios de root.\n");
         return 1;
     }
 
-    int dry_run = 1;
+    int dry_run = 1; // 1 para simulación, 0 para ejecución real
+    
+    if (dry_run) {
+        printf("--- modo simulación activo ---\n");
+    }
+
     index_base_directory("/usr/bin");
     process_secondary_directory("/usr/sbin", dry_run);
 

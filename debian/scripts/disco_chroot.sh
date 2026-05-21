@@ -1,33 +1,59 @@
-#!/bin/bash
-if [ "$EUID" -ne 0 ]; then echo "[-] Debe ser root."; exit 1; fi
+#!/bin/sh
+TARGET="/run/media/manjaro/DISCO/@"
 
-TARGET_DIR="/run/media/manjaro/DISCO/@"
-export XAUTH_FILE="/tmp/chroot_xauth.tmp"
+if [ "$(id -u)" -ne 0 ]; then
+    echo "Error: Se requieren privilegios de root." >&2
+    exit 1
+fi
 
-# 1. Obtener la cookie del servidor X actual y guardarla en un archivo temporal legible
-xauth extract - $DISPLAY > "$XAUTH_FILE"
+# 1. VERIFICACIÓN E INSTALACIÓN DE XHOST
+if ! command -v xhost >/dev/null 2>&1; then
+    echo "[*] 'xhost' no encontrado. Instalando xorg-xhost automáticamente..."
+    # -Sy refresca la base de datos, --noconfirm evita preguntas
+    pacman -Sy --noconfirm xorg-xhost
+    
+    # Verificación final por si falló la instalación
+    if ! command -v xhost >/dev/null 2>&1; then
+        echo "[!] Error: No se pudo instalar xorg-xhost. Revisa tu conexión a internet."
+        exit 1
+    fi
+fi
 
-# 2. Configuración de permisos gráficos
-xhost +local:root
+# Detectar el usuario real que invocó el script vía sudo
+REAL_USER=${SUDO_USER:-$(whoami)}
+REAL_HOME=$(eval echo "~$REAL_USER")
+XAUTH_SOURCE="$REAL_HOME/.Xauthority"
 
-# 3. Montajes
-for dir in tmp/.X11-unix run sys proc dev/pts dev; do umount -l "$TARGET_DIR/$dir" 2>/dev/null; done
-mkdir -p "$TARGET_DIR"/{dev/pts,proc,sys,run,tmp/.X11-unix,root,etc}
+# Limpieza
+for dir in tmp/.X11-unix run sys proc dev/pts dev; do
+    umount -l "$TARGET/$dir" 2>/dev/null
+done
 
-mount --bind /dev "$TARGET_DIR/dev" && mount --make-private "$TARGET_DIR/dev"
-mount --bind /dev/pts "$TARGET_DIR/dev/pts" && mount --make-private "$TARGET_DIR/dev/pts"
-mount --bind /proc "$TARGET_DIR/proc" && mount --make-private "$TARGET_DIR/proc"
-mount --bind /sys "$TARGET_DIR/sys" && mount --make-private "$TARGET_DIR/sys"
-mount --bind /run "$TARGET_DIR/run" && mount --make-private "$TARGET_DIR/run"
-mount --bind /tmp/.X11-unix "$TARGET_DIR/tmp/.X11-unix" && mount --make-private "$TARGET_DIR/tmp/.X11-unix"
+# Montajes
+mount --bind /dev "$TARGET/dev"
+mount --bind /dev/pts "$TARGET/dev/pts"
+mount --bind /proc "$TARGET/proc"
+mount --bind /sys "$TARGET/sys"
+mount --bind /run "$TARGET/run"
+mount --bind /tmp/.X11-unix "$TARGET/tmp/.X11-unix"
 
-export DISPLAY=$DISPLAY
-export QT_X11_NO_MITSHM=1
+# AUTORIZACIÓN TOTAL (Ahora garantizado que xhost existe)
+xhost + >/dev/null 2>&1
 
-# 4. Inyección del entorno dentro del chroot
-# Pasamos la cookie y forzamos el uso de la misma
-chroot "$TARGET_DIR" /bin/bash --login
+# Copia de seguridad del Xauthority
+if [ -f "$XAUTH_SOURCE" ]; then
+    cp "$XAUTH_SOURCE" "$TARGET/root/.Xauthority"
+    chmod 644 "$TARGET/root/.Xauthority"
+    echo "[*] Cookie de X11 copiada desde $XAUTH_SOURCE"
+else
+    echo "[!] Advertencia: No se encontró .Xauthority en $XAUTH_SOURCE"
+fi
 
-# 5. Limpieza
-rm -f "$XAUTH_FILE"
-for dir in tmp/.X11-unix run sys proc dev/pts dev; do umount -l "$TARGET_DIR/$dir" 2>/dev/null; done
+echo "[*] Entrando al sistema. DISPLAY detectado: $DISPLAY"
+# Pasamos la variable de display al chroot
+chroot "$TARGET" /bin/bash -c "export DISPLAY=$DISPLAY; export XAUTHORITY=/root/.Xauthority; /bin/bash"
+
+# Limpieza
+for dir in tmp/.X11-unix run sys proc dev/pts dev; do
+    umount -l "$TARGET/$dir" 2>/dev/null
+done

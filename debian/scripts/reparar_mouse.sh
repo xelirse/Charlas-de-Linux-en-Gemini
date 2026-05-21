@@ -1,106 +1,99 @@
 #!/bin/bash
 
-# Validar privilegios de root
+# 1. Validación de Root
 if [ "$(id -u)" -ne 0 ]; then
-    ERROR_MSG="Error: Se requieren privilegios de root (ejecutar con sudo)."
-    echo "$ERROR_MSG" >&2
-    echo "$ERROR_MSG" | LC_ALL=C xmessage -center -fn fixed -file -
+    echo "Error: Se requieren privilegios de root." >&2
     exit 1
 fi
 
-# 1. Instalar xinput usando APT (Salida directa a stdout con colores)
-if ! command -v xinput >/dev/null 2>&1; then
-    {
-        echo -e "\e[1;34m> apt-get update -qq\e[0m"
-        apt-get update -qq -o APT::Color=1
+LOG="/tmp/input_fix_log.txt"
+> "$LOG"
 
-        echo -e "\e[1;34m> apt-get install -y -t experimental xinput\e[0m"
-        if ! apt-get install -y -t experimental xinput -o APT::Color=1; then
-            echo -e "\e[1;33m[-] Experimental no disponible. Reintentando repositorio estable...\e[0m"
-            echo -e "\e[1;34m> apt-get install -y xinput\e[0m"
-            apt-get install -y xinput -o APT::Color=1
-        fi
-    } 2>&1
-    echo "[*] Proceso de instalación finalizado."
-    echo "----------------------------------------"
-fi
+# Redirigir stdout y stderr a la terminal Y al archivo LOG
+# (Se redirigen errores de xinput a /dev/null para evitar advertencias de Wayland)
+exec > >(tee -a "$LOG") 2>&1
 
-# Inicializamos el LOG para el reporte de xmessage
-LOG=$(mktemp)
+echo "========================================================="
+echo "           REPARACIÓN DE INPUT - $(date +'%d/%m/%Y %H:%M')"
+echo "========================================================="
 
-# 2. Verificación de archivos físicos o alternativas sysfs para el teclado
-echo "[MÓDULOS EN 7.1-AMD64 KERNEL PATH]" >> "$LOG"
-TARGET_PATH="/usr/lib/modules/7.1-amd64/kernel"
-if [ -d "$TARGET_PATH" ]; then
-    for mod in psmouse usbhid atkbd; do
-        if find "$TARGET_PATH" -type f -name "${mod}.ko*" | grep -q .; then
-            echo "  $mod: DISPONIBLE" >> "$LOG"
-        elif [ "$mod" = "atkbd" ] && [ -e /sys/bus/serio/devices/serio0/drvctl ]; then
-            echo "  $mod: NO ENCONTRADO (Alternativa sysfs disponible)" >> "$LOG"
-        else
-            echo "  $mod: NO ENCONTRADO" >> "$LOG"
-        fi
-    done
-else
-    echo "  Error: La ruta $TARGET_PATH no existe." >> "$LOG"
-fi
+# 2. Diagnóstico del sistema
+echo -e "\n[--- DIAGNÓSTICO DE SISTEMA ---]"
+echo "-> Rutas PCI / Sysfs (dmesg reciente):"
+dmesg | grep -i "pci" | grep -iE "usb|input" | tail -n 4
+echo -e "\n-> Módulos (usbhid/psmouse/atkbd):"
+lsmod | grep -E 'usbhid|psmouse|atkbd|hid' || echo "  (Ninguno detectado)"
 
-# 3. Reinicio de drivers a nivel Kernel
-echo -e "\n[*] Reiniciando subsistemas de entrada..." >> "$LOG"
-modprobe -r usbhid psmouse atkbd 2>>"$LOG"
-sleep 0.5
+echo -e "\n-> Dispositivos en /sys/class/input:"
+ls /sys/class/input | tr '\n' ' '
+echo -e "\n"
 
-# Intenta modprobe; si falla por chroot/built-in, re-conecta de forma física por Sysfs
-modprobe usbhid 2>>"$LOG" || {
-    for dev in /sys/bus/usb/drivers/usbhid/*:* ; do
-        if [ -e "$dev" ]; then
-            DEV_NAME=$(basename "$dev")
-            echo "$DEV_NAME" > /sys/bus/usb/drivers/usbhid/unbind 2>/dev/null
-            echo "$DEV_NAME" > /sys/bus/usb/drivers/usbhid/bind 2>/dev/null
-            echo "  -> usbhid ($DEV_NAME): Reiniciado vía Sysfs" >> "$LOG"
-        fi
-    done
-}
+# 3. Reparación de Hardware
+echo "[*] Iniciando reparación física..."
+modprobe usbhid >/dev/null 2>&1
+modprobe psmouse >/dev/null 2>&1
 
-modprobe psmouse 2>>"$LOG"
-
-modprobe atkbd 2>>"$LOG" || {
-    if [ -e /sys/bus/serio/devices/serio0/drvctl ]; then
-        echo -n "reconnect" > /sys/bus/serio/devices/serio0/drvctl 2>/dev/null
-        echo "  -> atkbd (serio0): Re-conectado vía Sysfs" >> "$LOG"
+# USB
+for dev in /sys/bus/usb/drivers/usbhid/*:*; do
+    if [ -d "$dev" ]; then
+        ID=$(basename "$dev")
+        echo "  -> Reset USB: $ID"
+        echo "$ID" > /sys/bus/usb/drivers/usbhid/unbind 2>/dev/null
+        sleep 0.5
+        echo "$ID" > /sys/bus/usb/drivers/usbhid/bind 2>/dev/null
     fi
-}
+done
 
-# 4. Forzar re-detección global en udev
-udevadm trigger --subsystem-match=input 2>>"$LOG"
+# PS/2
+for serio in /sys/bus/serio/devices/serio*; do
+    if [ -f "$serio/drvctl" ]; then
+        echo "  -> Reset PS/2: $(basename "$serio")"
+        echo "reconnect" > "$serio/drvctl" 2>/dev/null
+    fi
+done
 
-# Forzar habilitación en X11 en caso de que el entorno haya bloqueado o descolgado los punteros
-if command -v xinput >/dev/null 2>&1; then
-    DISPLAY=:0 xinput list | grep -iE 'pointer|keyboard|mouse|translated' | grep -o 'id=[0-9]*' | cut -d= -f2 | while read -r id; do
-        DISPLAY=:0 xinput enable "$id" 2>/dev/null
-    done
-fi
+# 4. Sincronización y Test
+echo -e "\n[*] Sincronizando dispositivos..."
+# El stderr es redirigido a /dev/null para silenciar warnings de Xwayland
+xinput list --slave --short 2>/dev/null | grep -o 'id=[0-9]*' | cut -d= -f2 | while read -r id; do
+    if [ -n "$id" ]; then
+        xinput enable "$id" 2>/dev/null
+        echo "  -> Habilitado ID: $id"
+    fi
+done
 
-# 5. Estado actual del Kernel en ejecución
-echo -e "\n[MÓDULOS CARGADOS ACTUALMENTE]" >> "$LOG"
-lsmod | grep -E 'psmouse|hid|atkbd' >> "$LOG"
+echo -e "\n========================================================="
+echo "[--- TEST DE HARDWARE ---]"
 
-echo -e "\n[DMESG RECIENTE]" >> "$LOG"
-dmesg | grep -iE 'mouse|psmouse|synaptics|hid|keyboard|atkbd' | tail -n 6 >> "$LOG"
-
-echo -e "\n[XINPUT DISPOSITIVOS]" >> "$LOG"
-if command -v xinput >/dev/null 2>&1; then
-    DISPLAY=:0 xinput list | grep -E 'pointer|keyboard' >> "$LOG"
+# Test de presencia
+if xinput list --short 2>/dev/null | grep -qi "keyboard"; then
+    echo "[OK] TECLADO: Detectado"
 else
-    echo "xinput no disponible." >> "$LOG"
+    echo "[!!] TECLADO: No detectado"
 fi
 
-# Línea final informativa adjunta al reporte
-echo -e "\n[RUTA DEL ARCHIVO LOG]" >> "$LOG"
-echo "  $LOG" >> "$LOG"
+if xinput list --short 2>/dev/null | grep -qi "pointer"; then
+    echo "[OK] MOUSE: Detectado"
+else
+    echo "[!!] MOUSE: No detectado"
+fi
+echo "========================================================="
+echo "[STATUS]: Reparación finalizada."
 
-# Imprime el informe limpio en stdout (consola)
-cat "$LOG"
+# 5. Reporte Visual (Autoajustable)
+# Obtenemos resolución de pantalla para calcular dimensiones
+if command -v xdpyinfo >/dev/null 2>&1; then
+    SCREEN_DIM=$(xdpyinfo | grep dimensions | awk '{print $2}')
+    TARGET_W=$(( $(echo $SCREEN_DIM | cut -d'x' -f1) * 70 / 100 ))
+    TARGET_H=$(( $(echo $SCREEN_DIM | cut -d'x' -f2) * 70 / 100 ))
+else
+    TARGET_W=1000; TARGET_H=700
+fi
 
-# Lanza la interfaz gráfica compacta sin remover el archivo temporal después
-LC_ALL=C xmessage -center -fn "6x13" -title "Input Fix (Mouse/Kbd)" -file "$LOG"
+# Zenity limpio (sin etiquetas HTML)
+if command -v zenity >/dev/null 2>&1; then
+    zenity --text-info --title="Reporte de Reparación" --filename="$LOG" \
+           --width="$TARGET_W" --height="$TARGET_H" --font="Monospace 9" 2>/dev/null &
+elif command -v xmessage >/dev/null 2>&1; then
+    xmessage -center -geometry "${TARGET_W}x${TARGET_H}" -title "Reporte de Reparación" -file "$LOG" 2>/dev/null &
+fi

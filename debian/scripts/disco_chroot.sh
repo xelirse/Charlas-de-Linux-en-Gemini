@@ -39,16 +39,24 @@ montar_bind "/sys" "$TARGET/sys"
 montar_bind "/dev" "$TARGET/dev"
 montar_bind "/dev/pts" "$TARGET/dev/pts"
 
-# 2. INSTALACIÓN POR FUERA (Anfitrión Arch -> Destino Debian)
-# Usamos el pacman de Arch para instalar en la ruta $TARGET
-# --dbpath es necesario para usar la base de datos de tu Arch anfitrión
-echo "[*] Instalando xorg-xset y xorg-xhost en el destino..."
-pacman -S --root "$TARGET" --dbpath /var/lib/pacman --noconfirm xorg-xset xorg-xhost
+# 2. VERIFICACIÓN E INSTALACIÓN EN EL ANFITRIÓN (Manjaro)
+# Se ejecuta pacman solo si xhost o xset no responden o no existen
+if ! command -v xhost >/dev/null 2>&1 || ! command -v xset >/dev/null 2>&1; then
+    echo "[*] xhost o xset no funcionan o no están instalados. Procediendo con pacman..."
+    rm -f /var/lib/pacman/db.lck 2>/dev/null
+    pacman -S --noconfirm --overwrite="*" xorg-xset xorg-xhost
+else
+    echo "[*] xhost y xset detectados y operativos. Saltando instalación."
+fi
 
 # 3. AUTORIZACIÓN X11
 if [ -n "$DISPLAY" ]; then
-    xhost +local:root >/dev/null 2>&1
-    echo "[*] Autorización X11 para root concedida."
+    if command -v xhost >/dev/null 2>&1; then
+        xhost +local:root
+        echo "[*] Autorización X11 para root concedida."
+    else
+        echo "[!] Error: xhost no se encuentra disponible para gestionar la autorización."
+    fi
 fi
 
 echo "[*] Entrando al chroot..."

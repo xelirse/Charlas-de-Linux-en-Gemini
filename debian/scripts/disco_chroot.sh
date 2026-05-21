@@ -9,7 +9,6 @@ TARGET="/run/media/root/DISCO/@"
 desmontar_si_existe() {
     if mountpoint -q "$1"; then
         printf "[!] Intentando desmontar: %s ... " "$1"
-        # Usamos 2>/dev/null para ocultar errores si ya no está montado
         umount "$1" 2>/dev/null || umount -l "$1" 2>/dev/null
         if [ $? -eq 0 ]; then
             echo "OK"
@@ -20,7 +19,6 @@ desmontar_si_existe() {
 }
 
 echo "[*] Verificando y limpiando montajes previos..."
-# Desmontamos manualmente en orden LIFO (Last-In-First-Out)
 desmontar_si_existe "$TARGET/sys/firmware/efi/efivars"
 desmontar_si_existe "$TARGET/dev/pts"
 desmontar_si_existe "$TARGET/dev"
@@ -58,7 +56,6 @@ montar_bind() {
     fi
 }
 
-# Montaje del propio chroot
 montar_bind "$TARGET" "$TARGET"
 
 # Crear directorios y montar
@@ -72,6 +69,21 @@ montar_bind "/run" "$TARGET/run"
 if [ -d "/sys/firmware/efi/efivars" ]; then
     montar_bind "/sys/firmware/efi/efivars" "$TARGET/sys/firmware/efi/efivars"
 fi
+
+# ---------------------------------------------------------------------
+# REPARACIÓN DE PERMISOS PARA _APT
+# ---------------------------------------------------------------------
+echo "[+] Asegurando permisos para el usuario _apt..."
+
+# Aseguramos que los directorios de caché existan y sean accesibles por _apt
+mkdir -p "$TARGET/var/cache/apt/archives/partial"
+chown -R _apt:root "$TARGET/var/cache/apt/archives"
+chmod 755 "$TARGET/var/cache/apt/archives"
+chmod 755 "$TARGET/var/cache/apt/archives/partial"
+
+# Si tienes archivos .deb en la raíz del chroot (donde sueles trabajar), 
+# los hacemos legibles globalmente para que _apt pueda leerlos si los mueves a caché
+find "$TARGET" -maxdepth 1 -name "*.deb" -exec chmod 644 {} \;
 
 # ---------------------------------------------------------------------
 # SOLUCIÓN DETECCIÓN GRUB
@@ -89,6 +101,4 @@ if [ -n "$DISPLAY" ]; then
 fi
 
 echo "[*] Entrando al chroot..."
-# Nota: sh no permite asignar variables antes del comando si este no es un builtin,
-# pero chroot es un ejecutable externo, por lo que esto funciona correctamente.
 DISPLAY="$DISPLAY" chroot "$TARGET" /bin/bash

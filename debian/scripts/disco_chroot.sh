@@ -1,5 +1,6 @@
 #!/bin/sh
-TARGET="/run/media/manjaro/DISCO/@"
+
+TARGET="/run/media/root/DISCO/@"
 
 if [ "$(id -u)" -ne 0 ]; then
     echo "Error: Se requieren privilegios de root." >&2

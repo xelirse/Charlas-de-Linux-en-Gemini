@@ -1,72 +1,50 @@
-#!/bin/bash
+#!/bin/sh
 
 # --- CONFIGURACIÓN ---
 DEVICE="/dev/sda1"
 MOUNT_POINT="/run/media/root/DISCO"
-TARGET="$MOUNT_POINT/@"
+TARGET="/run/media/root/DISCO/@"
 
-if [ "$(id -u)" -ne 0 ]; then
-    echo "Error: Se requieren privilegios de root." >&2
-    exit 1
-fi
+# Lista de puntos a limpiar en orden inverso
+PUNTOS_A_LIMPIAR=("$TARGET/dev/pts" "$TARGET/dev" "$TARGET/sys" "$TARGET/proc" "$MOUNT_POINT")
 
-# --- LÓGICA DE DETECCIÓN REALISTA ---
-# En lugar de usar 'mountpoint', verificamos si el subvolumen '@' existe realmente.
-# Si no existe, es porque el disco no está montado.
-if [ ! -d "$TARGET" ]; then
-    echo "[*] El subvolumen '@' no es visible. Intentando montar $DEVICE en $MOUNT_POINT..."
-    mkdir -p "$MOUNT_POINT"
-    if ! mount "$DEVICE" "$MOUNT_POINT"; then
-        echo "[!] Error: No se pudo montar $DEVICE."
-        exit 1
+echo "[*] Verificando y limpiando montajes previos..."
+
+for punto in "${PUNTOS_A_LIMPIAR[@]}"; do
+    # Verificamos si realmente está montado antes de intentar
+    if mountpoint -q "$punto"; then
+        echo -n "[!] Intentando desmontar: $punto ... "
+        # Intentamos desmontar y capturamos el resultado
+        if umount "$punto"; then
+            echo "OK"
+        else
+            echo "FALLIDO (El destino está ocupado o en uso)"
+        fi
     fi
-    
-    # Doble verificación: ¿Ahora sí existe?
-    if [ ! -d "$TARGET" ]; then
-        echo "[!] Error: Se montó $DEVICE pero no se encuentra la carpeta '$TARGET'."
-        exit 1
-    fi
-else
-    echo "[*] Disco detectado correctamente en $MOUNT_POINT."
-fi
-
-# Función de limpieza (se ejecuta al salir)
-cleanup() {
-    echo "[*] Limpiando montajes..."
-    # Desmontamos en orden inverso
-    for dir in tmp/.X11-unix run sys proc dev/pts dev; do
-        umount -l "$TARGET/$dir" 2>/dev/null
-    done
-}
-trap cleanup EXIT
-
-# --- MONTAJES DE SISTEMA ---
-echo "[*] Montando directorios del sistema..."
-declare -A montajes=(
-    ["/dev"]="$TARGET/dev"
-    ["/dev/pts"]="$TARGET/dev/pts"
-    ["/proc"]="$TARGET/proc"
-    ["/sys"]="$TARGET/sys"
-    ["/run"]="$TARGET/run"
-    ["/tmp/.X11-unix"]="$TARGET/tmp/.X11-unix"
-)
-
-for src in "${!montajes[@]}"; do
-    dest="${montajes[$src]}"
-    mkdir -p "$dest"
-    mount --bind "$src" "$dest"
 done
 
-# --- X11 Y CHROOT ---
-xhost + >/dev/null 2>&1
-REAL_USER=${SUDO_USER:-$(whoami)}
-REAL_HOME=$(eval echo "~$REAL_USER")
-XAUTH_SOURCE="$REAL_HOME/.Xauthority"
+# 2. MONTAJES
+echo "[*] Realizando montajes nuevos..."
 
-if [ -f "$XAUTH_SOURCE" ]; then
-    cp "$XAUTH_SOURCE" "$TARGET/root/.Xauthority"
-    chmod 644 "$TARGET/root/.Xauthority"
+mkdir -p "$MOUNT_POINT"
+if ! mountpoint -q "$MOUNT_POINT"; then
+    mount "$DEVICE" "$MOUNT_POINT" || { echo "Error: No se pudo montar $DEVICE"; exit 1; }
 fi
 
-echo "[*] Entrando al sistema..."
-chroot "$TARGET" /bin/bash -c "export DISPLAY=$DISPLAY; export XAUTHORITY=/root/.Xauthority; exec /bin/bash"
+# Función para montar bind solo si no existe
+montar_bind() {
+    if ! mountpoint -q "$2"; then
+        echo "[+] Montando bind: $1 en $2"
+        mount --bind "$1" "$2"
+    else
+        echo "[*] $2 ya está montado, saltando..."
+    fi
+}
+
+montar_bind "/proc" "$TARGET/proc"
+montar_bind "/sys" "$TARGET/sys"
+montar_bind "/dev" "$TARGET/dev"
+montar_bind "/dev/pts" "$TARGET/dev/pts"
+
+echo "[*] Entrando al chroot..."
+chroot "$TARGET" /bin/bash

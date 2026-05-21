@@ -1,33 +1,34 @@
-#!/bin/bash
+#!/bin/sh
 
 # --- CONFIGURACIÓN ---
 DEVICE="/dev/sda1"
 MOUNT_POINT="/run/media/root/DISCO"
 TARGET="/run/media/root/DISCO/@"
 
-# El orden estricto de limpieza: de adentro hacia afuera
-PUNTOS_A_LIMPIAR=(
-    "$TARGET/sys/firmware/efi/efivars"
-    "$TARGET/dev/pts" 
-    "$TARGET/dev" 
-    "$TARGET/proc" 
-    "$TARGET/sys" 
-    "$TARGET/run"
-    "$TARGET"       # <-- CLAVE: Desmontar el bind del propio chroot
-    "$MOUNT_POINT"
-)
-
-echo "[*] Verificando y limpiando montajes previos..."
-for punto in "${PUNTOS_A_LIMPIAR[@]}"; do
-    if mountpoint -q "$punto"; then
-        echo -n "[!] Intentando desmontar: $punto ... "
-        if umount "$punto" 2>/dev/null || umount -R "$punto" 2>/dev/null || umount -l "$punto" 2>/dev/null; then
+# Función para desmontar de forma segura
+desmontar_si_existe() {
+    if mountpoint -q "$1"; then
+        printf "[!] Intentando desmontar: %s ... " "$1"
+        # Usamos 2>/dev/null para ocultar errores si ya no está montado
+        umount "$1" 2>/dev/null || umount -l "$1" 2>/dev/null
+        if [ $? -eq 0 ]; then
             echo "OK"
         else
-            echo "FALLIDO (El destino sigue ocupado)"
+            echo "FALLIDO"
         fi
     fi
-done
+}
+
+echo "[*] Verificando y limpiando montajes previos..."
+# Desmontamos manualmente en orden LIFO (Last-In-First-Out)
+desmontar_si_existe "$TARGET/sys/firmware/efi/efivars"
+desmontar_si_existe "$TARGET/dev/pts"
+desmontar_si_existe "$TARGET/dev"
+desmontar_si_existe "$TARGET/proc"
+desmontar_si_existe "$TARGET/sys"
+desmontar_si_existe "$TARGET/run"
+desmontar_si_existe "$TARGET"
+desmontar_si_existe "$MOUNT_POINT"
 
 # 1. MONTAJE DEL DISCO BASE
 echo "[*] Realizando montajes nuevos..."
@@ -42,9 +43,8 @@ if ! mountpoint -q "$MOUNT_POINT"; then
     fi
 fi
 
-# Verificar que el directorio raíz de la distribución (@) exista realmente
 if [ ! -d "$TARGET" ]; then
-    echo "❌ Error fatal: El directorio objetivo '$TARGET' no existe en el disco."
+    echo "❌ Error fatal: El directorio objetivo '$TARGET' no existe."
     exit 1
 fi
 
@@ -58,52 +58,37 @@ montar_bind() {
     fi
 }
 
-# ---------------------------------------------------------------------
-# LA PIEZA FALTANTE PARA GRUB: Convertir el directorio en Mountpoint
-# ---------------------------------------------------------------------
+# Montaje del propio chroot
 montar_bind "$TARGET" "$TARGET"
 
-# Crear los directorios virtuales internos
+# Crear directorios y montar
 mkdir -p "$TARGET/proc" "$TARGET/sys" "$TARGET/dev" "$TARGET/dev/pts" "$TARGET/run"
-
-# Enlaces directos del núcleo del anfitrión al entorno de destino
 montar_bind "/proc" "$TARGET/proc"
 montar_bind "/sys" "$TARGET/sys"
 montar_bind "/dev" "$TARGET/dev"
 montar_bind "/dev/pts" "$TARGET/dev/pts"
 montar_bind "/run" "$TARGET/run"
 
-# Extra: Exponer variables EFI si el sistema anfitrión es UEFI 
 if [ -d "/sys/firmware/efi/efivars" ]; then
     montar_bind "/sys/firmware/efi/efivars" "$TARGET/sys/firmware/efi/efivars"
 fi
 
 # ---------------------------------------------------------------------
-# SOLUCIÓN DETECCIÓN GRUB: Sincronizar tabla de dispositivos montados
+# SOLUCIÓN DETECCIÓN GRUB
 # ---------------------------------------------------------------------
 echo "[+] Sincronizando tabla de montajes (/etc/mtab) para GRUB..."
 rm -f "$TARGET/etc/mtab" 2>/dev/null
 ln -s /proc/mounts "$TARGET/etc/mtab"
 
-# 2. VERIFICACIÓN E INSTALACIÓN EN EL ANFITRIÓN (Manjaro)
-if ! command -v xhost >/dev/null 2>&1 || ! command -v xset >/dev/null 2>&1; then
-    echo "[*] xhost o xset no funcionan. Procediendo con pacman..."
-    rm -f /var/lib/pacman/db.lck 2>/dev/null
-    pacman -S --noconfirm --overwrite="*" xorg-xset xorg-xhost
-else
-    echo "[*] xhost y xset detectados y operativos."
-fi
-
-# 3. AUTORIZACIÓN X11
+# 2. AUTORIZACIÓN X11
 if [ -n "$DISPLAY" ]; then
     if command -v xhost >/dev/null 2>&1; then
         xhost +local:root >/dev/null 2>&1
-        echo "[*] Autorización X11 para root concedida."
+        echo "[*] Autorización X11 concedida."
     fi
 fi
 
 echo "[*] Entrando al chroot..."
-echo "---------------------------------------------------------------------"
-
-# Entrar al entorno heredando las variables gráficas completas
-DISPLAY=$DISPLAY chroot "$TARGET" /bin/bash
+# Nota: sh no permite asignar variables antes del comando si este no es un builtin,
+# pero chroot es un ejecutable externo, por lo que esto funciona correctamente.
+DISPLAY="$DISPLAY" chroot "$TARGET" /bin/bash

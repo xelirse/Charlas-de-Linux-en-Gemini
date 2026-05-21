@@ -5,6 +5,12 @@ DEVICE="/dev/sda1"
 MOUNT_POINT="/run/media/root/DISCO"
 TARGET="/run/media/root/DISCO/@"
 
+# --- 1. INSTALACIÓN DE DEPENDENCIAS (HOST) ---
+if ! command -v xhost >/dev/null 2>&1; then
+    echo "[*] Instalando xorg-xhost con pacman..."
+    sudo pacman -S --noconfirm xorg-xhost
+fi
+
 # Función para desmontar de forma segura
 desmontar_si_existe() {
     if mountpoint -q "$1"; then
@@ -28,7 +34,7 @@ desmontar_si_existe "$TARGET/run"
 desmontar_si_existe "$TARGET"
 desmontar_si_existe "$MOUNT_POINT"
 
-# 1. MONTAJE DEL DISCO BASE
+# 2. MONTAJE DEL DISCO BASE
 echo "[*] Realizando montajes nuevos..."
 mkdir -p "$MOUNT_POINT"
 
@@ -70,35 +76,38 @@ if [ -d "/sys/firmware/efi/efivars" ]; then
     montar_bind "/sys/firmware/efi/efivars" "$TARGET/sys/firmware/efi/efivars"
 fi
 
-# ---------------------------------------------------------------------
-# REPARACIÓN DE PERMISOS PARA _APT
-# ---------------------------------------------------------------------
+# 3. REPARACIÓN DE _APT Y PERMISOS
 echo "[+] Asegurando permisos para el usuario _apt..."
+# Verificar/Crear usuario _apt dentro del chroot
+chroot "$TARGET" /bin/sh -c 'if ! getent passwd _apt >/dev/null 2>&1; then groupadd -g 100 _apt; useradd -u 100 -g _apt -d /nonexistent -s /usr/sbin/nologin _apt; fi'
 
-# Aseguramos que los directorios de caché existan y sean accesibles por _apt
 mkdir -p "$TARGET/var/cache/apt/archives/partial"
 chown -R _apt:root "$TARGET/var/cache/apt/archives"
 chmod 755 "$TARGET/var/cache/apt/archives"
 chmod 755 "$TARGET/var/cache/apt/archives/partial"
 
-# Si tienes archivos .deb en la raíz del chroot (donde sueles trabajar), 
-# los hacemos legibles globalmente para que _apt pueda leerlos si los mueves a caché
+# Archivos .deb
 find "$TARGET" -maxdepth 1 -name "*.deb" -exec chmod 644 {} \;
 
-# ---------------------------------------------------------------------
-# SOLUCIÓN DETECCIÓN GRUB
-# ---------------------------------------------------------------------
+# 4. SOLUCIÓN DETECCIÓN GRUB
 echo "[+] Sincronizando tabla de montajes (/etc/mtab) para GRUB..."
 rm -f "$TARGET/etc/mtab" 2>/dev/null
 ln -s /proc/mounts "$TARGET/etc/mtab"
 
-# 2. AUTORIZACIÓN X11
+# 5. AUTORIZACIÓN X11
 if [ -n "$DISPLAY" ]; then
     if command -v xhost >/dev/null 2>&1; then
         xhost +local:root >/dev/null 2>&1
         echo "[*] Autorización X11 concedida."
     fi
+    
+    # Copiar credenciales XAuthority para root
+    if [ -f "$XAUTHORITY" ]; then
+        cp "$XAUTHORITY" "$TARGET/root/.Xauthority"
+        chroot "$TARGET" chmod 600 /root/.Xauthority
+    fi
 fi
 
 echo "[*] Entrando al chroot..."
-DISPLAY="$DISPLAY" chroot "$TARGET" /bin/bash
+# Mantenemos DISPLAY y XAUTHORITY para aplicaciones gráficas
+env DISPLAY="$DISPLAY" XAUTHORITY="/root/.Xauthority" chroot "$TARGET" /bin/bash
